@@ -22,6 +22,7 @@ library
   build-depends:       base ==4.13.*
                       ,text ==1.2.*
                       ,containers ==0.6.*
+  default-extensions:  OverloadedStrings
   ghc-options:         -Wall
                        -fno-warn-orphans    
   hs-source-dirs:      src
@@ -32,6 +33,7 @@ executable filenames
   build-depends:       base ==4.13.*
                       ,text ==1.2.*
                       ,containers ==0.6.*
+  default-extensions:  OverloadedStrings
   ghc-options:         -Wall
                        -fno-warn-orphans
   hs-source-dirs:      src
@@ -39,12 +41,14 @@ executable filenames
   default-language:    Haskell2010
 
 test-suite unit
-  type:               exitcode-stdio-1.0
-  main-is:            Main.hs
-  hs-source-dirs:     test
-  build-depends:      base ==4.13.*
-                     ,test-framework
-                     ,test-framework-hunit
-                     ,HUnit
-                     ,filenames
-  default-language:   Haskell2010
+  type:                exitcode-stdio-1.0
+  main-is:             Main.hs
+  hs-source-dirs:      test
+  build-depends:       base ==4.13.*
+                      ,text ==1.2.*
+                      ,test-framework
+                      ,test-framework-hunit
+                      ,HUnit
+                      ,filenames
+  default-extensions:  OverloadedStrings
+  default-language:    Haskell2010
