@@ -17,11 +17,13 @@ source-repository      head
   location:            https://github.com/nathaniel-may/filenames/
 
 library
-  exposed-modules:     Filenames
+  exposed-modules:     Exe
+                      ,Filenames
   hs-source-dirs:      src/lib
   build-depends:       base ==4.13.*
                       ,containers ==0.6.*
                       ,megaparsec ==9.0.*
+                      ,optparse-applicative ==0.16.*
                       ,text ==1.2.*
   default-extensions:  OverloadedStrings
   ghc-options:         -Wall
@@ -33,8 +35,8 @@ executable filenames
   hs-source-dirs:      src/exe
   build-depends:       base ==4.13.*
                       ,containers ==0.6.*
+                      ,filenames
                       ,megaparsec ==9.0.*
-                      ,optparse-applicative ==0.16.*
                       ,text ==1.2.*
   default-extensions:  OverloadedStrings
   ghc-options:         -Wall
