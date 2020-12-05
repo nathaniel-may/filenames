@@ -1,13 +1,12 @@
 
-import Data.Either (isRight)
-import Data.Text (Text)
-import qualified Data.Text as T
-import Prelude hiding (lex)
-import Test.HUnit
-import Text.Megaparsec (parse)
-import System.Exit
-
-import Filenames
+import           Data.Either     (isRight)
+import           Data.Text       (Text)
+import qualified Data.Text       as T
+import           Filenames
+import           Prelude         hiding (lex)
+import           Test.HUnit
+import           Text.Megaparsec (parse)
+import           System.Exit
 
 
 schema :: [Text]

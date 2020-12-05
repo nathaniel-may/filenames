@@ -1,12 +1,12 @@
 
 module Filenames where
 
-import Data.Foldable (toList)
-import Data.Text (Text)
-import qualified Data.Text as T
-import Data.Void (Void)
-import Text.Megaparsec
-import Text.Megaparsec.Char
+import           Data.Foldable             (toList)
+import           Data.Text                 (Text)
+import qualified Data.Text                 as T
+import           Data.Void                 (Void)
+import           Text.Megaparsec
+import           Text.Megaparsec.Char
 import qualified Text.Megaparsec.Char.Lexer as L
 
 
