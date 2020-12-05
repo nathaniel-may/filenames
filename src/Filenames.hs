@@ -33,8 +33,8 @@ pCount = do
 
 pFilename :: [Text] -> Parser [Tok]
 pFilename schema = do
-    tags  <- some $ (pTag schema) <* char '-'
+    tags  <- some $ pTag schema <* char '-'
     setId <- pId
     i     <- optional (char '-' *> pCount)
     _     <- eof 
-    pure $ tags <> [setId] <> (toList i)
+    pure $ tags <> [setId] <> toList i
