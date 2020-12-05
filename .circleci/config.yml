@@ -29,4 +29,4 @@ jobs:
     #       command: cabal new-test quickcheck --test-show-details=streaming
       - run:
           name: Unit Tests
-          command: cabal new-test unit --test-show-details=streaming                           
+          command: cabal new-test unit --enable-tests --test-show-details=streaming                           
