@@ -34,5 +34,5 @@ pFilename schema = do
     tags  <- some $ pTag schema <* char '-'
     setId <- pId
     i     <- optional (char '-' *> pCount)
-    _     <- eof 
+    _     <- char '.' *> some alphaNumChar *> eof
     pure $ tags <> [setId] <> toList i
