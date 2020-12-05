@@ -1,6 +1,7 @@
 
 module Filenames where
 
+import           Data.Char                 (isAsciiUpper, isDigit)
 import           Data.Foldable             (toList)
 import           Data.Text                 (Text)
 import qualified Data.Text                 as T
@@ -17,19 +18,16 @@ data Tok
     deriving (Eq, Show, Read)
 
 pTag :: [Text] -> Parser Tok
-pTag schema = do
-    t <- choice $ string <$> schema
-    pure (Tag t)
+pTag schema = Tag <$> choice (string <$> schema)
 
 pId :: Parser Tok
-pId = do
-    fid <- count 6 (choice $ char <$> T.unpack "ABCDEFGHIJKLMNOPQRSTUVWXYZ123456789")
-    pure . Id $ T.pack fid
+pId = Id . T.pack <$> count 6 (satisfy isIdChar)
+    where 
+        isIdChar '0' = False
+        isIdChar c   = isAsciiUpper c || isDigit c
 
 pCount :: Parser Tok
-pCount = do 
-    i <- L.decimal :: Parser Int
-    pure (Count i)
+pCount = Count <$> L.decimal
 
 pFilename :: [Text] -> Parser [Tok]
 pFilename schema = do
