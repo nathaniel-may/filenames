@@ -1,4 +1,4 @@
-cabal-version:       >=1.10
+cabal-version:         >=1.10
   
 name:                  filenames
 version:               0.1.0.0
@@ -30,8 +30,8 @@ library
 
 executable filenames
   main-is:             Main.hs
-  build-depends:       base ==4.13.*
   hs-source-dirs:      src/exe
+  build-depends:       base ==4.13.*
                       ,containers ==0.6.*
                       ,megaparsec ==9.0.*
                       ,text ==1.2.*
