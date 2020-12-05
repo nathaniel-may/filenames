@@ -1,0 +1,32 @@
+version: 2.1
+
+jobs:
+  build:
+    docker:
+      - image: haskell:8.8.3
+    steps:
+      - checkout
+      - restore_cache:
+          name: Restore Cached Dependencies
+          key: db-haskell-dependencies-{{arch}}-{{ checksum "filenames.cabal" }}
+      - run:
+          name: Update Dependencies
+          command: cabal new-update && cabal new-install --lib
+      - run:
+          name: Compile
+          command: cabal new-build
+      - run:
+          name: Compile Tests
+          command: cabal new-build --enable-tests
+      - save_cache:
+          name: Cache Dependencies
+          key: db-haskell-dependencies-{{arch}}-{{ checksum "filenames.cabal" }}
+          paths:
+            - "/root/.cabal"
+            - "haskell/dist-newstyle" 
+    #   - run:
+    #       name: Property Tests
+    #       command: cabal new-test quickcheck --test-show-details=streaming
+      - run:
+          name: Unit Tests
+          command: cabal new-test unit --test-show-details=streaming                           
