@@ -22,6 +22,7 @@ library
   build-depends:       base ==4.13.*
                       ,text ==1.2.*
                       ,containers ==0.6.*
+                      ,megaparsec ==9.0.*
   default-extensions:  OverloadedStrings
   ghc-options:         -Wall
                        -fno-warn-orphans    
@@ -33,6 +34,7 @@ executable filenames
   build-depends:       base ==4.13.*
                       ,text ==1.2.*
                       ,containers ==0.6.*
+                      ,megaparsec ==9.0.*
   default-extensions:  OverloadedStrings
   ghc-options:         -Wall
                        -fno-warn-orphans
@@ -45,6 +47,7 @@ test-suite unit
   main-is:             Main.hs
   hs-source-dirs:      test
   build-depends:       base ==4.13.*
+                      ,megaparsec ==9.0.*
                       ,text ==1.2.*
                       ,test-framework
                       ,test-framework-hunit
