@@ -1,18 +1,20 @@
 cabal-version:       >=1.10
+  
+name:                  filenames
+version:               0.1.0.0
+synopsis:              Command line tool to identify filenames outside a defined schema.
+description:           A schema file is provided to describe the desired filename schema. When pointed at a directory, this tool will identify the files that do not follow the specified schema.
+license:               MIT
+license-file:          LICENSE
+author:                Nathaniel May
+maintainer:            nathanieldmay@gmail.com
+category:              Command Line
+build-type:            Simple
+extra-source-files:    README.md
 
-name:                filenames
-version:             0.1.0.0
--- synopsis:
--- description:
--- bug-reports:
--- license:
-license-file:        LICENSE
-author:              Nathaniel May
-maintainer:          nathanieldmay@gmail.com
--- copyright:
--- category:
-build-type:          Simple
-extra-source-files:  CHANGELOG.md, README.md
+source-repository      head
+  type:                git
+  location:            https://github.com/nathaniel-may/filenames/
 
 library
   exposed-modules:     Filenames
