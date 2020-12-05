@@ -21,10 +21,9 @@ pTag :: [Text] -> Parser Tok
 pTag schema = Tag <$> choice (string <$> schema)
 
 pId :: Parser Tok
-pId = Id . T.pack <$> count 6 (satisfy isIdChar)
-    where 
-        isIdChar '0' = False
-        isIdChar c   = isAsciiUpper c || isDigit c
+pId = Id . T.pack <$> count 6 (satisfy isIdChar) where 
+    isIdChar '0' = False
+    isIdChar c   = isAsciiUpper c || isDigit c
 
 pCount :: Parser Tok
 pCount = Count <$> L.decimal
