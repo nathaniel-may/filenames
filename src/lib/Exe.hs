@@ -1,10 +1,13 @@
 module Exe where
 
-import           Data.Text
-import qualified Data.Text as T
-import           Data.Text.IO
+import           Data.Functor        (void)
+import           Data.Maybe          (catMaybes)
+import           Data.Text           hiding (null)
+import qualified Data.Text           as T
+import           Data.Text.IO        as T
 import           Data.Void           (Void)
 import           Filenames           hiding (Parser)
+import qualified Filenames
 import           Options.Applicative
 import           Prelude             hiding (readFile, putStrLn, lines)
 import           System.Directory
@@ -46,12 +49,18 @@ run (Input dFlag s d) = do
     let filenames = T.pack <$> filenames'
     schema' <- readFile s
     let tags = lines schema'
-    let result = mapM (parse (pFilename tags) =<< T.unpack) filenames
-    if dFlag
-    then either printParseError (\_ -> putStrLn "Everything matches the schema!") result
-    else putStrLn "Eventually this will print a list of filenames that don't match." -- TODO
+    let pFails = catMaybes $ (filenameAndParseError (pFilename tags)) <$> filenames
+    let pFailNames = snd <$> pFails
+    let pFailErrs = fst <$> pFails
+    if null pFails
+    then putStrLn "Everything matches the schema!"
+    else do
+        putStrLn "-mismatching filenames found-"
+        if dFlag
+        then void $ mapM (putStrLn . T.pack . errorBundlePretty) pFailErrs
+        else void $ mapM putStrLn pFailNames
 
-printParseError :: ParseErrorBundle Text Void -> IO()
-printParseError bundle = do 
-    putStrLn "-mismatching filename found-"
-    putStrLn . T.pack $ errorBundlePretty bundle
+-- parsing happens here
+filenameAndParseError :: Filenames.Parser a -> Text -> Maybe (ParseErrorBundle Text Void, Text)
+filenameAndParseError p fname = 
+    either (\e -> Just (e, fname)) (\_ -> Nothing) (parse p (T.unpack fname) fname)
