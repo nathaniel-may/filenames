@@ -1,8 +1,8 @@
 module Exe where
 
 import           Data.Functor        (void)
-import           Data.Maybe          (catMaybes)
-import           Data.Text           hiding (null)
+import           Data.Maybe          (catMaybes, isNothing)
+import           Data.Text           hiding (null, length, filter)
 import qualified Data.Text           as T
 import           Data.Text.IO        as T
 import           Data.Void           (Void)
@@ -49,18 +49,25 @@ run (Input dFlag s d) = do
     let filenames = T.pack <$> filenames'
     schema' <- readFile s
     let tags = lines schema'
-    let pFails = catMaybes $ (filenameAndParseError (pFilename tags)) <$> filenames
+    let parsed = filenameAndParseError (pFilename tags) <$> filenames
+    let pFails = catMaybes parsed
     let pFailNames = snd <$> pFails
     let pFailErrs = fst <$> pFails
+    let valid = length $ filter isNothing parsed
+    let invalid = length pFails
+    putStrLn $ tshow valid <> " valid filenames found."
+    putStrLn $ tshow invalid <> " invalid filenames found."
     if null pFails
     then putStrLn "Everything matches the schema!"
-    else do
-        putStrLn "-mismatching filenames found-"
-        if dFlag
+    else if dFlag
         then void $ mapM (putStrLn . T.pack . errorBundlePretty) pFailErrs
         else void $ mapM putStrLn pFailNames
+    putStrLn ""
 
 -- parsing happens here
 filenameAndParseError :: Filenames.Parser a -> Text -> Maybe (ParseErrorBundle Text Void, Text)
 filenameAndParseError p fname = 
     either (\e -> Just (e, fname)) (\_ -> Nothing) (parse p (T.unpack fname) fname)
+
+tshow :: Show a => a -> Text
+tshow = T.pack . show
