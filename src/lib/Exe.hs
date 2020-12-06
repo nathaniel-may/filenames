@@ -46,7 +46,7 @@ run (Input dFlag s d) = do
     let filenames = T.pack <$> filenames'
     schema' <- readFile s
     let tags = lines schema'
-    let result = mapM (parse (pFilename tags) "main") filenames
+    let result = mapM (parse (pFilename tags) =<< T.unpack) filenames
     if dFlag
     then either printParseError (\_ -> putStrLn "Everything matches the schema!") result
     else putStrLn "Eventually this will print a list of filenames that don't match." -- TODO

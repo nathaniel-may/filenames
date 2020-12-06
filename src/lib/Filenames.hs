@@ -28,6 +28,7 @@ pId = Id . T.pack <$> count 6 (satisfy isIdChar) where
 pCount :: Parser Tok
 pCount = Count <$> L.decimal
 
+-- TODO make recoverable to show a list of parse errors
 pFilename :: [Text] -> Parser [Tok]
 pFilename schema = do
     tags  <- some $ pTag schema <* char '-'
