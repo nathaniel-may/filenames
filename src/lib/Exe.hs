@@ -1,13 +1,13 @@
+{-# LANGUAGE TupleSections #-}
+
 module Exe where
 
-import           Data.Functor        (void)
-import           Data.Maybe          (catMaybes, isNothing)
+import           Control.Monad       (ap)
+import           Data.Either         (isRight)
 import           Data.Text           hiding (null, length, filter)
 import qualified Data.Text           as T
 import           Data.Text.IO        as T
-import           Data.Void           (Void)
 import           Filenames           hiding (Parser)
-import qualified Filenames
 import           Options.Applicative
 import           Prelude             hiding (readFile, putStrLn, lines)
 import           System.Directory
@@ -49,25 +49,25 @@ run (Input dFlag s d) = do
     let filenames = T.pack <$> filenames'
     schema' <- readFile s
     let tags = lines schema'
-    let parsed = filenameAndParseError (pFilename tags) <$> filenames
-    let pFails = catMaybes parsed
-    let pFailNames = snd <$> pFails
-    let pFailErrs = fst <$> pFails
-    let valid = length $ filter isNothing parsed
+    let parsed = preserving (parse (pFilename tags) =<< T.unpack) <$> filenames
+    -- bind is filter don't @ me.
+    let pFails = secondF (either (:[]) (const [])) =<< parsed
+    let valid = length $ filter (isRight . snd) parsed
     let invalid = length pFails
     putStrLn $ tshow valid <> " valid filenames found."
     putStrLn $ tshow invalid <> " invalid filenames found."
     if null pFails
     then putStrLn "Everything matches the schema!"
     else if dFlag
-        then void $ mapM (putStrLn . T.pack . errorBundlePretty) pFailErrs
-        else void $ mapM putStrLn pFailNames
+        then mapM_ (putStrLn . T.pack . errorBundlePretty) (snd <$> pFails)
+        else mapM_ putStrLn (fst <$> pFails)
     putStrLn ""
-
--- parsing happens here
-filenameAndParseError :: Filenames.Parser a -> Text -> Maybe (ParseErrorBundle Text Void, Text)
-filenameAndParseError p fname = 
-    either (\e -> Just (e, fname)) (\_ -> Nothing) (parse p (T.unpack fname) fname)
 
 tshow :: Show a => a -> Text
 tshow = T.pack . show
+
+preserving :: (a -> b) -> a -> (a, b)
+preserving = ap (,)
+
+secondF :: Functor f => (b -> f c) -> (a, b) -> f (a, c)
+secondF f (a, b) = (a,) <$> f b
