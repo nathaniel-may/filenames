@@ -4,7 +4,7 @@ module Exe where
 
 import           Control.Monad       (ap)
 import           Data.Bitraversable  (bitraverse)
-import           Data.Either         (isRight, partitionEithers)
+import           Data.Either         (isRight)
 import           Data.Text           hiding (null, length, filter)
 import qualified Data.Text           as T
 import           Data.Text.IO        as T
