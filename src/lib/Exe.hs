@@ -1,5 +1,3 @@
-{-# LANGUAGE TupleSections #-}
-
 module Exe where
 
 import           Control.Monad       (ap)
