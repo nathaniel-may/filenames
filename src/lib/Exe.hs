@@ -3,9 +3,10 @@ module Exe where
 import           Control.Monad       (ap)
 import           Data.Bitraversable  (bitraverse)
 import           Data.Either         (isRight)
-import           Data.Text           hiding (null, length, filter)
+import           Data.Text           (Text)
 import qualified Data.Text           as T
-import           Data.Text.IO        as T
+import           Data.Text.IO        (putStrLn)
+import qualified Data.Text.IO        as T
 import           Options.Applicative
 import           Parsers             hiding (Parser)
 import           Prelude             hiding (readFile, putStrLn, lines)
@@ -46,8 +47,8 @@ run (Input dFlag s d) = do
     putStrLn ""
     filenames' <- listDirectory d
     let filenames = T.pack <$> filenames'
-    schema' <- readFile s
-    let tags = lines schema'
+    schema' <- T.readFile s
+    let tags = T.lines schema'
     let parsed = preserving (parse (filename tags) =<< T.unpack) <$> filenames
     -- bind is filter, mempty :: Monoid b => a -> b
     let pFails = bitraverse pure (either pure mempty) =<< parsed
