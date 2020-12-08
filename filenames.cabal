@@ -18,7 +18,7 @@ source-repository      head
 
 library
   exposed-modules:     Exe
-                      ,Filenames
+                      ,Parsers
   hs-source-dirs:      src/lib
   build-depends:       base ==4.13.*
                       ,containers ==0.6.*

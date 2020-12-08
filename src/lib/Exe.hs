@@ -6,8 +6,8 @@ import           Data.Either         (isRight)
 import           Data.Text           hiding (null, length, filter)
 import qualified Data.Text           as T
 import           Data.Text.IO        as T
-import           Filenames           hiding (Parser)
 import           Options.Applicative
+import           Parsers             hiding (Parser)
 import           Prelude             hiding (readFile, putStrLn, lines)
 import           System.Directory
 import           Text.Megaparsec
@@ -48,7 +48,7 @@ run (Input dFlag s d) = do
     let filenames = T.pack <$> filenames'
     schema' <- readFile s
     let tags = lines schema'
-    let parsed = preserving (parse (pFilename tags) =<< T.unpack) <$> filenames
+    let parsed = preserving (parse (filename tags) =<< T.unpack) <$> filenames
     -- bind is filter, mempty :: Monoid b => a -> b
     let pFails = bitraverse pure (either pure mempty) =<< parsed
     let valid = length $ filter (isRight . snd) parsed

@@ -1,5 +1,5 @@
 
-module Filenames where
+module Parsers where
 
 import           Data.Char                 (isAsciiUpper, isDigit)
 import           Data.Foldable             (toList)
@@ -17,21 +17,21 @@ data Tok
     = Tag Text | Id Text | Count Int
     deriving (Eq, Show, Read)
 
-pTag :: [Text] -> Parser Tok
-pTag schema = Tag <$> choice (string <$> schema)
+tag :: [Text] -> Parser Tok
+tag schema = Tag <$> choice (string <$> schema)
 
-pId :: Parser Tok
-pId = Id . T.pack <$> count 6 (satisfy isIdChar) where 
+idTag :: Parser Tok
+idTag = Id . T.pack <$> count 6 (satisfy isIdChar) where 
     isIdChar '0' = False
     isIdChar c   = isAsciiUpper c || isDigit c
 
-pCount :: Parser Tok
-pCount = Count <$> L.decimal
+counter :: Parser Tok
+counter = Count <$> L.decimal
 
-pFilename :: [Text] -> Parser [Tok]
-pFilename schema = do
-    tags  <- some $ pTag schema <* char '-'
-    setId <- pId
-    i     <- optional (char '-' *> pCount)
+filename :: [Text] -> Parser [Tok]
+filename schema = do
+    tags  <- some $ tag schema <* char '-'
+    setId <- idTag
+    i     <- optional (char '-' *> counter)
     _     <- char '.' *> some alphaNumChar *> eof
     pure $ tags <> [setId] <> toList i
