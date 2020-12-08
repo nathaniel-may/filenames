@@ -1,17 +1,13 @@
 module Exe where
 
-import           Control.Monad       (ap)
-import           Data.Bitraversable  (bitraverse)
-import           Data.Either         (isRight)
-import           Data.Text           (Text)
+import           CustomPrelude       hiding (some)
 import qualified Data.Text           as T
-import           Data.Text.IO        (putStrLn)
 import qualified Data.Text.IO        as T
-import           Options.Applicative
+import           Data.Bitraversable  (bitraverse)
+import           Options.Applicative -- import all
 import           Parsers             hiding (Parser)
-import           Prelude             hiding (readFile, putStrLn, lines)
-import           System.Directory
-import           Text.Megaparsec
+import           System.Directory    (listDirectory)
+import           Text.Megaparsec     (errorBundlePretty, parse)
 
 data Input = Input
   { details :: Bool 
@@ -62,9 +58,3 @@ run (Input dFlag s d) = do
         then mapM_ (putStrLn . T.pack . errorBundlePretty) (snd <$> pFails)
         else mapM_ putStrLn (fst <$> pFails)
     putStrLn ""
-
-tshow :: Show a => a -> Text
-tshow = T.pack . show
-
-preserving :: (a -> b) -> a -> (a, b)
-preserving = ap (,)

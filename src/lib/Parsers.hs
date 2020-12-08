@@ -1,13 +1,10 @@
 
 module Parsers where
 
-import           Data.Char                 (isAsciiUpper, isDigit)
-import           Data.Foldable             (toList)
-import           Data.Text                 (Text)
-import qualified Data.Text                 as T
-import           Data.Void                 (Void)
-import           Text.Megaparsec
-import           Text.Megaparsec.Char
+import           CustomPrelude              hiding (some)
+import qualified Data.Text                  as T
+import           Text.Megaparsec            -- import all
+import           Text.Megaparsec.Char       (alphaNumChar, char, string)
 import qualified Text.Megaparsec.Char.Lexer as L
 
 
