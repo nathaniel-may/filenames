@@ -16,12 +16,12 @@ module CustomPrelude (
 import qualified Prelude as P
 
 -- Base types
-import           Data.Int            as Export
-import           Data.Bool           as Export
-import           Data.Char           as Export
-import           Data.Maybe          as Export
-import           Data.Either         as Export
-import           Data.Void           as Export (Void)
+import Data.Int    as Export
+import Data.Bool   as Export
+import Data.Char   as Export
+import Data.Maybe  as Export
+import Data.Either as Export
+import Data.Void   as Export (Void)
 
 import Data.Function as Export (
     ($)
