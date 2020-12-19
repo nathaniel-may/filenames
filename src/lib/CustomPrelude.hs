@@ -81,6 +81,7 @@ import Data.Functor          as Export (
 
 -- Data structures
 import Data.Tuple as Export
+import Data.List as L
 import Data.List  as Export (
     splitAt
   , break
@@ -89,7 +90,9 @@ import Data.List  as Export (
   , drop
   , filter
   , reverse
-  , replicate)
+  , replicate
+  , take
+  , takeWhile)
 -- only exporting types. functions should be imported qualified
 import Data.Map      as Export (Map)
 import Data.Set      as Export (Set)
@@ -123,6 +126,11 @@ tshow = T.pack . show
 
 preserving :: (a -> b) -> a -> (a, b)
 preserving = ap (,)
+
+(!!?) :: [a] -> Int -> Maybe a
+(!!?) xs n
+    | n < 0 = Nothing
+    | otherwise = headMay $ L.drop n xs
 
 -- * Debugging
 
