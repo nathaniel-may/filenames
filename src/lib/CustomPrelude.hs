@@ -115,6 +115,9 @@ import System.Exit as Export
 
 -- * Basic functions
 
+print :: Show a => a -> IO ()
+print = P.putStrLn . show
+
 identity :: a -> a
 identity x = x
 
