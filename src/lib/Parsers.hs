@@ -1,7 +1,7 @@
 
 module Parsers where
 
-import           CustomPrelude              hiding (some)
+import           CustomPrelude              hiding (count, some)
 import qualified Data.Text                  as T
 import           Text.Megaparsec            -- import all
 import           Text.Megaparsec.Char       (alphaNumChar, char, string)
