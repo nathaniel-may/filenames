@@ -43,6 +43,7 @@ executable filenames
                        OverloadedStrings
   ghc-options:         -Wall
                        -fno-warn-orphans
+                       -O
   --other-modules:                   
   default-language:    Haskell2010
 
