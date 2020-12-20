@@ -61,6 +61,7 @@ import Control.Applicative as Export (
 import Control.Monad as Export
 
 -- Base typeclasses
+import GHC.Enum         as Export
 import Data.Eq          as Export
 import Data.Ord         as Export
 import Data.Monoid      as Export
@@ -88,7 +89,9 @@ import Data.List  as Export (
   , intercalate
   , isPrefixOf
   , drop
+  , dropWhile
   , filter
+  , group
   , reverse
   , replicate
   , take
@@ -101,8 +104,8 @@ import Data.IntMap   as Export (IntMap)
 import Data.IntSet   as Export (IntSet)
 
 -- Text (should be imported qualified)
-import Data.Text    as T
-import Data.Text.IO as T
+import qualified Data.Text    as T
+import qualified Data.Text.IO as T
 import Data.Text    as Export (Text)
 import Data.Text.IO as Export (putStrLn, putStr)
 
@@ -131,6 +134,9 @@ preserving = ap (,)
 (!!?) xs n
     | n < 0 = Nothing
     | otherwise = headMay $ L.drop n xs
+
+count :: (a -> Bool) -> [a] -> Int
+count f = foldr (\x n -> if f x then n + 1 else n) 0
 
 -- * Debugging
 
