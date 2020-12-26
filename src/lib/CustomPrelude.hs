@@ -141,6 +141,9 @@ preserving = ap (,)
 count :: (a -> Bool) -> [a] -> Int
 count f = foldr (\x n -> if f x then n + 1 else n) 0
 
+none :: Foldable f => (a -> Bool) -> f a -> Bool
+none f = not . any f
+
 -- * Debugging
 
 {-# WARNING undefined "'undefined' remains in code" #-}
