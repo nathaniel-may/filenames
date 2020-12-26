@@ -5,7 +5,7 @@ import qualified Data.Text           as T
 import qualified Data.Text.IO        as T
 import           Data.Bitraversable  (bitraverse)
 import           Options.Applicative -- import all
-import           Parsers             hiding (Parser)
+import           Parsers             hiding (Parser, str)
 import           System.Directory    (listDirectory)
 import           Text.Megaparsec     (errorBundlePretty, parse)
 
