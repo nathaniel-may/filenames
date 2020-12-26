@@ -70,7 +70,7 @@ strlist = StrList <$> brackets (sepBy commalessStr (symbol ","))
 fn :: Parser Expr
 fn = do
     name <- (T.pack <$> many alphaNumChar) <* symbol "("
-    params <- (sepBy expr (symbol ",")) <* symbol ")"
+    params <- sepBy expr (symbol ",") <* symbol ")"
     pure (Fn name params)
 
 term :: Parser Expr
@@ -113,7 +113,7 @@ typecheck (Fn "anyExcept" [arg0]) = case arg0 of
     _ -> Left . TypeException $ "`anyExcept` takes one arg of type StringList."
 typecheck (Fn name _) = Left . TypeException $ "unknown function `" <> name <> "`"
 
-data TypeException
+newtype TypeException
     = TypeException Text
     deriving (Eq, Show, Read)
 
