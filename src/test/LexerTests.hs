@@ -1,12 +1,9 @@
 module LexerTests where
 
 import           CustomPrelude   -- import all
-import           Data.Text       (Text)
-import qualified Data.Text       as T
 import           Parsers         -- import all
 import           Test.HUnit      -- import all
 import           Text.Megaparsec (parse)
-import           System.Exit     (ExitCode(..), exitSuccess, exitWith)
 
 
 schema :: [Text]
