@@ -46,28 +46,6 @@ main = run =<< execParser opts
 run :: Input -> IO ()
 run input' = interface . work =<< readInput input'
 
--- -- where file IO and parsing is done
--- run :: Input -> IO ()
--- run (Input dFlag s d) = do
---     putStrLn ""
---     filenames' <- listDirectory d
---     let filenames = T.pack <$> filenames'
---     schema' <- T.readFile s
---     let tags = T.lines schema'
---     let parsed = preserving (parse (filename tags) =<< T.unpack) <$> filenames
---     -- bind is filter, mempty :: Monoid b => a -> b
---     let pFails = bitraverse pure (either pure mempty) =<< parsed
---     let valid = length $ filter (isRight . snd) parsed
---     let invalid = length pFails
---     putStrLn $ tshow valid <> " valid filenames found."
---     putStrLn $ tshow invalid <> " invalid filenames found."
---     if null pFails
---     then putStrLn "Everything matches the schema!"
---     else if dFlag
---         then mapM_ (putStrLn . T.pack . errorBundlePretty) (snd <$> pFails)
---         else mapM_ putStrLn (fst <$> pFails)
---     putStrLn ""
-
 readInput :: Input -> IO ParsedInput
 readInput (Input dFlag s d) = do
     filenames <- fmap T.pack <$> listDirectory d
@@ -76,7 +54,7 @@ readInput (Input dFlag s d) = do
 
 work :: ParsedInput -> Output
 work (ParsedInput dFlag ast filenames) = Output dFlag valid invalid parserErrors where
-    parsed = uncurry pairUp . preserving (parse (filename ast) =<< T.unpack) <$> filenames
+    parsed = uncurry eitherWith . preserving (parse (filename ast) =<< T.unpack) <$> filenames
     parserErrors = fmap snd . lefts $ parsed
     valid = fmap fst . rights $ parsed
     invalid = fmap fst . lefts $ parsed
@@ -94,6 +72,6 @@ interface (Output dFlag valid invalid parseErrors) = do
         else mapM_ putStrLn invalid
     putStrLn ""
 
-pairUp :: c -> Either a b -> Either (c, a) (c, b)
-pairUp x (Left y) = Left (x, y)
-pairUp x (Right z) = Right (x, z)
+eitherWith :: c -> Either a b -> Either (c, a) (c, b)
+eitherWith x (Left y) = Left (x, y)
+eitherWith x (Right z) = Right (x, z)
