@@ -1,12 +1,13 @@
+{-# LANGUAGE GADTs #-}
 
 module Parsers where
 
+import           Control.Exception  (displayException, Exception)
 import           CustomPrelude                  hiding (count, some, many, Any)
 import qualified Data.Text                      as T
 import           Text.Megaparsec                -- import all
 import           Text.Megaparsec.Char           (alphaNumChar, char, space1, string)
 import qualified Text.Megaparsec.Char.Lexer     as L
-
 
 type Parser = Parsec Void Text
 
@@ -36,12 +37,8 @@ filename schema = do
 -- Config File Parsers
 
 data Expr
-    = Char Char
-    | Int Int
+    = Int Int
     | StrList [Text]
-    | String Text
-    | Var Text
-    -- functions
     | Fn Text [Expr]
     deriving (Read, Show, Eq)
 
@@ -85,3 +82,40 @@ term = choice
 
 expr :: Parser Expr
 expr = term -- TODO this is pretty simplistic
+
+data ExprT t where
+    UnitVal  :: ExprT ()
+    IntT     :: Int       -> ExprT Int
+    StrListT :: [Text]    -> ExprT [Text]
+    ExactlyT :: ExprT Int -> ExprT [Text] -> ExprT ()
+    AtLeastT :: ExprT Int -> ExprT [Text] -> ExprT ()
+
+-- extential type
+data SomeAST = forall t. SomeAST (ExprT t)
+    
+typecheck :: Expr -> Either TypeException SomeAST
+typecheck (Int i) = Right . SomeAST $ IntT i
+typecheck (StrList strs) = Right . SomeAST  $ StrListT strs
+typecheck (Fn "exactly" args) = case args of
+    [Int i, StrList strs] -> Right . SomeAST  $ ExactlyT (IntT i) (StrListT strs)
+    _ -> Left . TypeException $ "`exactly` takes two args of type Int and StringList."
+typecheck (Fn "atLeast" [arg0, arg1]) = case (arg0, arg1) of
+    (Int i, StrList strs) -> Right . SomeAST  $ AtLeastT (IntT i) (StrListT strs)
+    _ -> Left . TypeException $ "`atLeast` takes two args of type Int and StringList."
+typecheck (Fn "one" [arg0]) = case arg0 of
+    (StrList strs) -> Right . SomeAST  $ ExactlyT (IntT 1) (StrListT strs)
+    _ -> Left . TypeException $ "`one` takes one arg of type StringList."
+typecheck (Fn "any" [arg0]) = case arg0 of
+    (StrList strs) -> Right . SomeAST  $ AtLeastT (IntT 0) (StrListT strs)
+    _ -> Left . TypeException $ "`any` takes one arg of type StringList."
+typecheck (Fn "anyExcept" [arg0]) = case arg0 of
+    (StrList strs) -> Right . SomeAST  $ ExactlyT (IntT 0) (StrListT strs)
+    _ -> Left . TypeException $ "`anyExcept` takes one arg of type StringList."
+typecheck (Fn name _) = Left . TypeException $ "unknown function `" <> name <> "`"
+
+data TypeException
+    = TypeException Text
+    deriving (Eq, Show, Read)
+
+instance Exception TypeException where
+    displayException (TypeException msg) = T.unpack msg
