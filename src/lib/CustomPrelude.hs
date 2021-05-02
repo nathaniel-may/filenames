@@ -186,3 +186,7 @@ maybeToLeft r = maybe (Right r) Left
 
 maybeToEither :: Monoid b => (a -> b) -> Maybe a -> b
 maybeToEither = maybe mempty
+
+mapLeft :: (a -> c) -> Either a b -> Either c b
+mapLeft f (Left x)  = Left (f x)
+mapLeft _ (Right y) = Right y
