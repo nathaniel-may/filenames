@@ -1,5 +1,3 @@
-{-# LANGUAGE GADTs #-}
-
 module Parsers where
 
 import           Control.Exception              (displayException, Exception)
@@ -14,6 +12,7 @@ type Parser = Parsec Void Text
 data Expr
     = StringU Text
     | CharU (Maybe Char)
+    | ListU [Expr]
     deriving (Read, Show, Eq)
 
 sc :: Parser ()
@@ -31,8 +30,8 @@ symbol = L.symbol sc
 parens :: Parser a -> Parser a
 parens = between (symbol "(") (symbol ")")
 
--- brackets :: Parser a -> Parser a
--- brackets = between (symbol "[") (symbol "]")
+brackets :: Parser a -> Parser a
+brackets = between (symbol "[") (symbol "]")
 
 stringLiteral :: Parser Expr
 stringLiteral = StringU . T.pack <$> (char '\"' *> manyTill L.charLiteral (char '\"'))
@@ -43,24 +42,55 @@ charLiteral = choice [
   , CharU . Just <$> between (char '\'') (char '\'') L.charLiteral
   ]
 
+list :: Parser Expr
+list = ListU <$> brackets (sepBy expr (symbol ","))
+
 expr :: Parser Expr
 expr = choice
   [ parens expr
   , stringLiteral
   , charLiteral
+  , list
   ]
 
-data ExprT t where
-    String :: Text -> ExprT Text
-    Char   :: Maybe Char -> ExprT (Maybe Char)
+data Type
+    = StringTag
+    | CharTag
+    | ListTag Type
+    deriving (Read, Show, Eq)
 
--- extential type
-data SomeAST = forall t. SomeAST (ExprT t)
+checkType :: Type -> ExprT -> Either TypeException ()
+checkType StringTag (String _) = Right ()
+checkType tag (String _) = Left . TypeException $ "expected type " <> tshow tag <> " found String"
+checkType CharTag (Char _) = Right ()
+checkType tag (Char _) = Left . TypeException $ "expected type " <> tshow tag <> " found String"
+checkType (ListTag t) (List t' xs) = 
+    if t == t'
+    then Left . TypeException $ "expected type List of" <> tshow t <> " found List of" <> tshow t'
+    else mapM_ (checkType t) xs
+checkType tag List{} = Left . TypeException $ "expected type " <> tshow tag <> " found String"
+
+inferType :: ExprT -> Either TypeException Type
+inferType (String _) = Right StringTag
+inferType (Char _) = Right CharTag
+inferType (List tag xs) = mapM_ (checkType tag) xs >> pure (ListTag tag)
+
+data ExprT
+    = String Text
+    | Char (Maybe Char)
+    | List Type [ExprT]
     
-typecheck :: Expr -> Either TypeException SomeAST
-typecheck (StringU str) = Right . SomeAST $ String str
-typecheck (CharU mc) = Right . SomeAST $ Char mc
-
+typecheck :: Expr -> Either TypeException ExprT
+typecheck (StringU str) = Right $ String str
+typecheck (CharU mc) = Right $ Char mc
+typecheck (ListU elems@(x : _)) = do
+    expectedType <- inferType =<< typecheck x
+    checked <- sequence $ typecheck <$> elems
+    inferred <- sequence $ inferType <$> checked
+    if all (== expectedType) inferred
+    then Right $ List expectedType checked
+    else Left . TypeException $ "Expected List elements to all be " <> tshow expectedType
+typecheck (ListU _) = Right $ List StringTag []
 
 newtype TypeException
     = TypeException Text
