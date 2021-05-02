@@ -1,11 +1,11 @@
 module Main where
 
-import CustomPrelude -- import all
-import LexerTests    (lexerTests)
-import Test.HUnit    -- import all
+import CustomPrelude    -- import all
+import SchemaParseTests (parserTests)
+import Test.HUnit       -- import all
 
 allTests :: [Test]
-allTests = lexerTests
+allTests = parserTests
 
 main :: IO ()
 main = do
