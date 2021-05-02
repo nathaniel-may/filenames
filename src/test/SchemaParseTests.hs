@@ -1,51 +1,64 @@
 module SchemaParseTests where
 
-import           CustomPrelude   -- import all
-import           Parsers         -- import all
-import           Test.HUnit      -- import all
-import           Text.Megaparsec (parse)
+import           CustomPrelude          -- import all
+import           Parsers                -- import all
+import           Prelude                (String)
+import           Test.HUnit             -- import all
+import           Text.Megaparsec        (parse)
+
+
+testEq :: String -> Expr -> Text -> Test
+testEq name expected input = TestCase $ assertEqual
+  name
+  (Right expected)
+  (parse expr "unit-test" input)
+
+testFails :: String -> Text -> Test
+testFails name input = TestCase $ assertBool
+  name
+  (isLeft $ parse expr "unit-test" input)
 
 
 test1 :: Test
-test1 = TestCase $ assertEqual
+test1 = testEq
   "Parses Strings"
-  (Right $ StringU "str")
-  (parse expr "unit-test" "\"str\"")
+  (StringU "str")
+  "\"str\""
 
 test2 :: Test
-test2 = TestCase $ assertEqual
+test2 = testEq
   "Parses Chars"
-  (Right . CharU . Just $ 'c')
-  (parse expr "unit-test" "'c'")
+  (CharU . Just $ 'c')
+  "'c'"
 
 test3 :: Test
-test3 = TestCase $ assertBool
+test3 = testFails
   "single quotes with too many chars fail"
-  (isLeft $ parse expr "unit-test" "'abc'")
+  "'abc'"
 
 test4 :: Test
-test4 = TestCase $ assertEqual
+test4 = testEq
   "Parses Empty Char"
-  (Right . CharU $ Nothing)
-  (parse expr "unit-test" "''")
+  (CharU $ Nothing)
+  "''"
 
 test5 :: Test
-test5 = TestCase $ assertEqual
+test5 = testEq
   "Parses List of Strings"
-  (Right $ ListU [StringU "hello", StringU "world"])
-  (parse expr "unit-test" "[\"hello\", \"world\"]")
+  (ListU [StringU "hello", StringU "world"])
+  "[\"hello\", \"world\"]"
 
 test6 :: Test
-test6 = TestCase $ assertEqual
+test6 = testEq
   "Parses List of Chars"
-  (Right $ ListU [CharU (Just 'a'), CharU (Just 'b'), CharU (Just 'c')])
-  (parse expr "unit-test" "['a','b','c']")
+  (ListU [CharU (Just 'a'), CharU (Just 'b'), CharU (Just 'c')])
+  "['a','b','c']"
 
 test7 :: Test
-test7 = TestCase $ assertEqual
+test7 = testEq
   "Parses empty List"
-  (Right $ ListU [])
-  (parse expr "unit-test" "[]")
+  (ListU [])
+  "[]"
 
 parserTests :: [Test]
 parserTests = [test1, test2, test3, test4, test5, test6]
