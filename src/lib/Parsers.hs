@@ -63,12 +63,12 @@ checkType :: Type -> ExprT -> Either TypeException ()
 checkType StringTag (String _) = Right ()
 checkType tag (String _) = Left . TypeException $ "expected type " <> tshow tag <> " found String"
 checkType CharTag (Char _) = Right ()
-checkType tag (Char _) = Left . TypeException $ "expected type " <> tshow tag <> " found String"
+checkType tag (Char _) = Left . TypeException $ "expected type " <> tshow tag <> " found Char"
 checkType (ListTag t) (List t' xs) = 
     if t == t'
     then Left . TypeException $ "expected type List of" <> tshow t <> " found List of" <> tshow t'
     else mapM_ (checkType t) xs
-checkType tag List{} = Left . TypeException $ "expected type " <> tshow tag <> " found String"
+checkType tag (List tag' _) = Left . TypeException $ "expected type " <> tshow tag <> " found list of" <> tshow tag'
 
 inferType :: ExprT -> Either TypeException Type
 inferType (String _) = Right StringTag
