@@ -86,8 +86,8 @@ typecheck (StringU str) = Right $ String str
 typecheck (CharU mc) = Right $ Char mc
 typecheck (ListU elems@(x : _)) = do
     expectedType <- inferType =<< typecheck x
-    checked <- sequence $ typecheck <$> elems
-    inferred <- sequence $ inferType <$> checked
+    checked <- traverse typecheck elems
+    inferred <- traverse inferType checked
     if all (== expectedType) inferred
     then Right $ List expectedType checked
     else Left . TypeException $ "Expected List elements to all be " <> tshow expectedType
