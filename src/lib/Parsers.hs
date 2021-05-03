@@ -79,6 +79,7 @@ data ExprT
     = String Text
     | Char (Maybe Char)
     | List Type [ExprT]
+    deriving (Read, Show, Eq)
     
 typecheck :: Expr -> Either TypeException ExprT
 typecheck (StringU str) = Right $ String str

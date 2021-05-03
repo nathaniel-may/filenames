@@ -2,10 +2,11 @@ module Main where
 
 import CustomPrelude    -- import all
 import SchemaParseTests (parserTests)
+import SchemaTypeTests  (typeTests)
 import Test.HUnit       -- import all
 
 allTests :: [Test]
-allTests = parserTests
+allTests = parserTests <> typeTests
 
 main :: IO ()
 main = do

@@ -53,6 +53,7 @@ test-suite unit
   main-is:             Main.hs
   hs-source-dirs:      src/test
   other-modules:       SchemaParseTests
+                      ,SchemaTypeTests
   build-depends:       base ==4.13.*
                       ,filenames
                       ,HUnit
