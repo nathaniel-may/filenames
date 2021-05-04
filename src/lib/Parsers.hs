@@ -53,24 +53,27 @@ expr = choice
   , list
   ]
 
+runParse :: Text -> Text -> Either CompileException Expr
+runParse filename input = mapLeft ParseException (parse expr (T.unpack filename) input)
+
 data Type
     = StringTag
     | CharTag
     | ListTag Type
     deriving (Read, Show, Eq)
 
-checkType :: Type -> ExprT -> Either TypeException ()
+checkType :: Type -> ExprT -> Either CompileException ()
 checkType StringTag (String _) = Right ()
-checkType tag (String _) = Left . TypeException $ "expected type " <> tshow tag <> " found String"
+checkType tag (String _) = Left $ TypeException tag StringTag
 checkType CharTag (Char _) = Right ()
-checkType tag (Char _) = Left . TypeException $ "expected type " <> tshow tag <> " found Char"
+checkType tag (Char _) = Left $ TypeException tag CharTag
 checkType (ListTag t) (List t' xs) = 
     if t /= t'
-    then Left . TypeException $ "expected type List of" <> tshow t <> " found List of" <> tshow t'
+    then Left $ TypeException (ListTag t) (ListTag t')
     else mapM_ (checkType t) xs
-checkType tag (List tag' _) = Left . TypeException $ "expected type " <> tshow tag <> " found list of" <> tshow tag'
+checkType t (List t' _) = Left $ TypeException (ListTag t) (ListTag t')
 
-inferType :: ExprT -> Either TypeException Type
+inferType :: ExprT -> Either CompileException Type
 inferType (String _) = Right StringTag
 inferType (Char _) = Right CharTag
 inferType (List tag xs) = mapM_ (checkType tag) xs >> pure (ListTag tag)
@@ -81,19 +84,27 @@ data ExprT
     | List Type [ExprT]
     deriving (Read, Show, Eq)
     
-typecheck :: Expr -> Either TypeException ExprT
+typecheck :: Expr -> Either CompileException ExprT
 typecheck (StringU str) = Right $ String str
 typecheck (CharU mc) = Right $ Char mc
 typecheck (ListU elems@(x : _)) = do
     expectedElemType <- inferType =<< typecheck x
     checked <- traverse typecheck elems
-    let expected = List expectedElemType checked
-    fmap (const expected) (checkType (ListTag expectedElemType) expected)
+    let possibility = List expectedElemType checked
+    fmap (const possibility) (checkType (ListTag expectedElemType) possibility)
 typecheck (ListU _) = Right $ List StringTag []
 
-newtype TypeException
-    = TypeException Text
-    deriving (Eq, Show, Read)
+data CompileException 
+    = ParseException (ParseErrorBundle Text Void)
+    | TypeException { 
+        expectedType :: Type
+      , foundType    :: Type
+    }
+    deriving (Eq, Show)
 
-instance Exception TypeException where
-    displayException (TypeException msg) = T.unpack msg
+instance Exception CompileException where
+    displayException (ParseException e) =
+        errorBundlePretty e
+    displayException (TypeException e f) = 
+        "expected " <> show e <> " but found " <> show f
+ 

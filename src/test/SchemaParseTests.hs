@@ -4,19 +4,18 @@ import           CustomPrelude          -- import all
 import           Parsers                -- import all
 import           Prelude                (String)
 import           Test.HUnit             -- import all
-import           Text.Megaparsec        (parse)
 
 
 testEq :: String -> Expr -> Text -> Test
 testEq name expected input = TestCase $ assertEqual
   name
   (Right expected)
-  (parse expr "unit-test" input)
+  (runParse "unit-test" input)
 
 testFails :: String -> Text -> Test
 testFails name input = TestCase $ assertBool
   name
-  (isLeft $ parse expr "unit-test" input)
+  (isLeft $ runParse "unit-test" input)
 
 
 test1 :: Test
