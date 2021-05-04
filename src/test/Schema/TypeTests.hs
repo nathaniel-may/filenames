@@ -1,9 +1,11 @@
-module SchemaTypeTests where
+module Schema.TypeTests where
 
-import           CustomPrelude   -- import all
-import           Parsers         -- import all
-import           Prelude         (String)
-import           Test.HUnit      -- import all
+import           CustomPrelude      -- import all
+import           Schema.Parser      (runParse)
+import           Schema.TypeChecker (typecheck)
+import           Schema.Types       -- import all
+import           Prelude            (String)
+import           Test.HUnit         -- import all
 
 
 testEq :: String -> ExprT -> Text -> Test

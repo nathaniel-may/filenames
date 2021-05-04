@@ -1,7 +1,8 @@
-module SchemaParseTests where
+module Schema.ParseTests where
 
 import           CustomPrelude          -- import all
-import           Parsers                -- import all
+import           Schema.Parser          (runParse)
+import           Schema.Types           -- import all
 import           Prelude                (String)
 import           Test.HUnit             -- import all
 

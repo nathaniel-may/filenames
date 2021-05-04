@@ -19,7 +19,10 @@ source-repository      head
 library
   exposed-modules:     CustomPrelude
                       ,Exe
-                      ,Parsers
+                      ,Schema.Exceptions
+                      ,Schema.TypeChecker
+                      ,Schema.Types
+                      ,Schema.Parser
   hs-source-dirs:      src/lib
   build-depends:       base ==4.13.*
                       ,containers ==0.6.*
@@ -52,8 +55,8 @@ test-suite unit
   type:                exitcode-stdio-1.0
   main-is:             Main.hs
   hs-source-dirs:      src/test
-  other-modules:       SchemaParseTests
-                      ,SchemaTypeTests
+  other-modules:       Schema.ParseTests
+                      ,Schema.TypeTests
   build-depends:       base ==4.13.*
                       ,filenames
                       ,HUnit

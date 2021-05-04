@@ -1,9 +1,9 @@
 module Main where
 
-import CustomPrelude    -- import all
-import SchemaParseTests (parserTests)
-import SchemaTypeTests  (typeTests)
-import Test.HUnit       -- import all
+import CustomPrelude      -- import all
+import Schema.ParseTests  (parserTests)
+import Schema.TypeTests   (typeTests)
+import Test.HUnit         -- import all
 
 allTests :: [Test]
 allTests = parserTests <> typeTests
