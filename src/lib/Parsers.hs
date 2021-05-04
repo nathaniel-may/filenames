@@ -65,7 +65,7 @@ checkType tag (String _) = Left . TypeException $ "expected type " <> tshow tag 
 checkType CharTag (Char _) = Right ()
 checkType tag (Char _) = Left . TypeException $ "expected type " <> tshow tag <> " found Char"
 checkType (ListTag t) (List t' xs) = 
-    if t == t'
+    if t /= t'
     then Left . TypeException $ "expected type List of" <> tshow t <> " found List of" <> tshow t'
     else mapM_ (checkType t) xs
 checkType tag (List tag' _) = Left . TypeException $ "expected type " <> tshow tag <> " found list of" <> tshow tag'
@@ -85,12 +85,10 @@ typecheck :: Expr -> Either TypeException ExprT
 typecheck (StringU str) = Right $ String str
 typecheck (CharU mc) = Right $ Char mc
 typecheck (ListU elems@(x : _)) = do
-    expectedType <- inferType =<< typecheck x
+    expectedElemType <- inferType =<< typecheck x
     checked <- traverse typecheck elems
-    inferred <- traverse inferType checked
-    if all (== expectedType) inferred
-    then Right $ List expectedType checked
-    else Left . TypeException $ "Expected List elements to all be " <> tshow expectedType
+    let expected = List expectedElemType checked
+    fmap (const expected) (checkType (ListTag expectedElemType) expected)
 typecheck (ListU _) = Right $ List StringTag []
 
 newtype TypeException

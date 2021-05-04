@@ -40,5 +40,11 @@ test3 = testEq
   (List StringTag [])
   "[]"
 
+test4 :: Test
+test4 = testEq
+  "List of Chars typechecks"
+  (List CharTag [Char (Just 'x'), Char (Just 'y')])
+  "['x', 'y']"
+
 typeTests :: [Test]
-typeTests = [test1, test2, test3]
+typeTests = [test1, test2, test3, test4]
