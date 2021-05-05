@@ -37,9 +37,8 @@ test3 = testFails
   "'abc'"
 
 test4 :: Test
-test4 = testEq
-  "Parses Empty Char"
-  (CharU $ Nothing)
+test4 = testFails
+  "fails on empty char"
   "''"
 
 test5 :: Test

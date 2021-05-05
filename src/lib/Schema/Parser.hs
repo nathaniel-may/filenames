@@ -51,5 +51,5 @@ expr = choice
 
 -- TODO make input record type to disambiguate Text inputs.
 -- | top-level runner
-runParse :: Text -> Text -> Either CompileException Expr
-runParse filename input = mapLeft ParseException (parse expr (T.unpack filename) input)
+runParse :: Text -> Text -> Either ParseException Expr
+runParse filename input = mapLeft LexicalException (parse expr (T.unpack filename) input)

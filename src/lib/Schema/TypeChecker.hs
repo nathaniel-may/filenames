@@ -6,7 +6,7 @@ import           Schema.Types       -- import all
 
 
 -- | top-level entry point to type checking
-typecheck :: Expr -> Either CompileException ExprT
+typecheck :: Expr -> Either TypeException ExprT
 typecheck (StringU str) = Right $ String str
 typecheck (CharU mc) = Right $ Char mc
 typecheck (ListU elems@(x : _)) = do
@@ -16,7 +16,7 @@ typecheck (ListU elems@(x : _)) = do
     fmap (const possibility) (checkType (ListTag expectedElemType) possibility)
 typecheck (ListU _) = Right $ List StringTag []
 
-checkType :: Type -> ExprT -> Either CompileException ()
+checkType :: Type -> ExprT -> Either TypeException ()
 checkType StringTag (String _) = Right ()
 checkType tag (String _) = Left $ TypeException tag StringTag
 checkType CharTag (Char _) = Right ()
@@ -27,7 +27,7 @@ checkType (ListTag t) (List t' xs) =
     else mapM_ (checkType t) xs
 checkType t (List t' _) = Left $ TypeException (ListTag t) (ListTag t')
 
-inferType :: ExprT -> Either CompileException Type
+inferType :: ExprT -> Either TypeException Type
 inferType (String _) = Right StringTag
 inferType (Char _) = Right CharTag
 inferType (List tag xs) = mapM_ (checkType tag) xs >> pure (ListTag tag)

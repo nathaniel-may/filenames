@@ -1,6 +1,7 @@
 module Schema.TypeTests where
 
 import           CustomPrelude      -- import all
+import           Schema.Exceptions  -- import all
 import           Schema.Parser      (runParse)
 import           Schema.TypeChecker (typecheck)
 import           Schema.Types       -- import all
@@ -8,16 +9,22 @@ import           Prelude            (String)
 import           Test.HUnit         -- import all
 
 
+runParse' :: Text -> Text -> Either CompileException Expr
+runParse' filename input = mapLeft ParseE $ runParse filename input
+
+typecheck' :: Expr -> Either CompileException ExprT
+typecheck' e = mapLeft TypeE $ typecheck e
+
 testEq :: String -> ExprT -> Text -> Test
 testEq name expected input = TestCase $ assertEqual
     name
     (Right expected)
-    (typecheck =<< runParse "unit-test" input)
+    (typecheck' =<< runParse' "unit-test" input)
 
 testFails :: String -> Text -> Test
 testFails name input = TestCase $ assertBool
   name
-  (isLeft $ typecheck =<< runParse "unit-test" input)
+  (isLeft $ typecheck' =<< runParse' "unit-test" input)
 
 
 test1 :: Test
