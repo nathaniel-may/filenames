@@ -28,7 +28,7 @@ test1 = testEq
 test2 :: Test
 test2 = testEq
   "Parses Chars"
-  (CharU . Just $ 'c')
+  (CharU 'c')
   "'c'"
 
 test3 :: Test
@@ -50,7 +50,7 @@ test5 = testEq
 test6 :: Test
 test6 = testEq
   "Parses List of Chars"
-  (ListU [CharU (Just 'a'), CharU (Just 'b'), CharU (Just 'c')])
+  (ListU [CharU 'a', CharU 'b', CharU 'c'])
   "['a','b','c']"
 
 test7 :: Test

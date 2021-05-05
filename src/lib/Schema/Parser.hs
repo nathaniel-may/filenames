@@ -29,19 +29,19 @@ parens = between (symbol "(") (symbol ")")
 brackets :: Parser a -> Parser a
 brackets = between (symbol "[") (symbol "]")
 
-stringLiteral :: Parser Expr
-stringLiteral = StringU . T.pack <$> (char '\"' *> manyTill L.charLiteral (char '\"'))
+stringLiteral :: Parser Expr'
+stringLiteral = StringU' . T.pack <$> (char '\"' *> manyTill L.charLiteral (char '\"'))
 
-charLiteral :: Parser Expr
+charLiteral :: Parser Expr'
 charLiteral = choice [
-    string "''" $> CharU Nothing
-  , CharU . Just <$> between (char '\'') (char '\'') L.charLiteral
+    string "''" $> CharU' Nothing
+  , CharU' . Just <$> between (char '\'') (char '\'') L.charLiteral
   ]
 
-list :: Parser Expr
-list = ListU <$> brackets (sepBy expr (symbol ","))
+list :: Parser Expr'
+list = ListU' <$> brackets (sepBy expr (symbol ","))
 
-expr :: Parser Expr
+expr :: Parser Expr'
 expr = choice
   [ parens expr
   , stringLiteral
@@ -49,7 +49,15 @@ expr = choice
   , list
   ]
 
+checkParse :: Expr' -> Either ParseException Expr
+checkParse (CharU' Nothing) = Left EmptyChar 
+checkParse (CharU' (Just c)) = Right (CharU c)
+checkParse (StringU' s) = Right (StringU s)
+checkParse (ListU' elems) = Right . ListU =<< traverse checkParse elems
+
 -- TODO make input record type to disambiguate Text inputs.
 -- | top-level runner
 runParse :: Text -> Text -> Either ParseException Expr
-runParse filename input = mapLeft LexicalException (parse expr (T.unpack filename) input)
+runParse filename input = do
+    parsed <- mapLeft LexicalException (parse expr (T.unpack filename) input)
+    checkParse parsed

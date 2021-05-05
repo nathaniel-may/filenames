@@ -48,7 +48,7 @@ test3 = testEq
 test4 :: Test
 test4 = testEq
   "List of Chars typechecks"
-  (List CharTag [Char (Just 'x'), Char (Just 'y')])
+  (List CharTag [Char 'x', Char 'y'])
   "['x', 'y']"
 
 typeTests :: [Test]

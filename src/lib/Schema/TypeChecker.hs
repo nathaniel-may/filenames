@@ -8,7 +8,7 @@ import           Schema.Types       -- import all
 -- | top-level entry point to type checking
 typecheck :: Expr -> Either TypeException ExprT
 typecheck (StringU str) = Right $ String str
-typecheck (CharU mc) = Right $ Char mc
+typecheck (CharU c) = Right $ Char c
 typecheck (ListU elems@(x : _)) = do
     expectedElemType <- inferType =<< typecheck x
     checked <- traverse typecheck elems

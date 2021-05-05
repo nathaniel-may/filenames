@@ -9,14 +9,20 @@ data Type
     | ListTag Type
     deriving (Read, Show, Eq)
 
+data Expr'
+    = StringU' Text
+    | CharU' (Maybe Char)
+    | ListU' [Expr']
+    deriving (Read, Show, Eq)
+
 data Expr
     = StringU Text
-    | CharU (Maybe Char)
+    | CharU Char
     | ListU [Expr]
     deriving (Read, Show, Eq)
 
 data ExprT
     = String Text
-    | Char (Maybe Char)
+    | Char Char
     | List Type [ExprT]
     deriving (Read, Show, Eq)
