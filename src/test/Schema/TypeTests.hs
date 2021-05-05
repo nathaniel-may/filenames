@@ -10,10 +10,10 @@ import           Test.HUnit         -- import all
 
 
 runParse' :: Source -> Either CompileException Expr
-runParse' source = mapLeft ParseE $ runParse source
+runParse' = mapLeft ParseE . runParse
 
 typecheck' :: Expr -> Either CompileException ExprT
-typecheck' e = mapLeft TypeE $ typecheck e
+typecheck' = mapLeft TypeE . typecheck
 
 testEq :: String -> ExprT -> Text -> Test
 testEq name expected input = TestCase $ assertEqual
