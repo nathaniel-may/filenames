@@ -11,12 +11,12 @@ testEq :: String -> Expr -> Text -> Test
 testEq name expected input = TestCase $ assertEqual
   name
   (Right expected)
-  (runParse "unit-test" input)
+  (runParse (Source "unit-test" input))
 
 testFails :: String -> Text -> Test
 testFails name input = TestCase $ assertBool
   name
-  (isLeft $ runParse "unit-test" input)
+  (isLeft $ runParse (Source "unit-test" input))
 
 
 test1 :: Test

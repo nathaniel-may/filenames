@@ -3,6 +3,13 @@ module Schema.Types where
 import           CustomPrelude -- import all
 
 
+data Source
+    = Source {
+        filename :: Text
+      , contents :: Text
+    }
+    deriving (Read, Show, Eq)
+
 data Type
     = StringTag
     | CharTag

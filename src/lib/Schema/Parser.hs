@@ -55,9 +55,8 @@ checkParse (CharU' (Just c)) = Right (CharU c)
 checkParse (StringU' s) = Right (StringU s)
 checkParse (ListU' elems) = Right . ListU =<< traverse checkParse elems
 
--- TODO make input record type to disambiguate Text inputs.
 -- | top-level runner
-runParse :: Text -> Text -> Either ParseException Expr
-runParse filename input = do
-    parsed <- mapLeft LexicalException (parse expr (T.unpack filename) input)
+runParse :: Source -> Either ParseException Expr
+runParse source = do
+    parsed <- mapLeft LexicalException (parse expr (T.unpack $ filename source) (contents source))
     checkParse parsed

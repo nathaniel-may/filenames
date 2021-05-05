@@ -9,8 +9,8 @@ import           Prelude            (String)
 import           Test.HUnit         -- import all
 
 
-runParse' :: Text -> Text -> Either CompileException Expr
-runParse' filename input = mapLeft ParseE $ runParse filename input
+runParse' :: Source -> Either CompileException Expr
+runParse' source = mapLeft ParseE $ runParse source
 
 typecheck' :: Expr -> Either CompileException ExprT
 typecheck' e = mapLeft TypeE $ typecheck e
@@ -19,12 +19,12 @@ testEq :: String -> ExprT -> Text -> Test
 testEq name expected input = TestCase $ assertEqual
     name
     (Right expected)
-    (typecheck' =<< runParse' "unit-test" input)
+    (typecheck' =<< runParse' (Source "unit-test" input))
 
 testFails :: String -> Text -> Test
 testFails name input = TestCase $ assertBool
   name
-  (isLeft $ typecheck' =<< runParse' "unit-test" input)
+  (isLeft $ typecheck' =<< runParse' (Source "unit-test" input))
 
 
 test1 :: Test
