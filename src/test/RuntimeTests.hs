@@ -23,5 +23,17 @@ test2 = TestCase $ assertEqual
   (Just [("medium",["art"]),("subject",["nature"])])
   (parse simpleParser '-' "art-nature")
 
+test3 :: Test
+test3 = TestCase $ assertEqual 
+  "Parser fails on simple invalid input" 
+  Nothing
+  (parse simpleParser '-' "art-other")
+
+test4 :: Test
+test4 = TestCase $ assertEqual 
+  "Parser fails on input with doubled delimiters" 
+  Nothing
+  (parse simpleParser '-' "art--nature")
+
 runtimeTests :: [Test]
-runtimeTests = [test1, test2]
+runtimeTests = [test1, test2, test3, test4]
