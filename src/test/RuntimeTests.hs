@@ -1,7 +1,7 @@
 module RuntimeTests where
 
 import           CustomPrelude -- import all
-import           Runtime       (P, p, parse)
+import           Runtime       (P, p, parse, ParseError(..))
 import qualified Data.Set      as Set
 import           Test.HUnit    -- import all
 
@@ -35,5 +35,11 @@ test4 = TestCase $ assertEqual
   (Right []) -- TODO update this to Left
   (parse simpleParser '-' "art--nature")
 
+test5 :: Test
+test5 = TestCase $ assertEqual 
+  "Parser fails on input with extra tokens that can't be matched" 
+  (Left (UnmatchedTokens ("art" :| [])))
+  (parse simpleParser '-' "art-nature-art")
+
 runtimeTests :: [Test]
-runtimeTests = [test1, test2, test3, test4]
+runtimeTests = [test1, test2, test3, test4, test5]
