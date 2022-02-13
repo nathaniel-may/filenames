@@ -88,7 +88,7 @@ import Data.Functor          as Export (
 -- Data structures
 import Data.Tuple as Export
 import Data.List as L
-import Data.List  as Export (
+import Data.List as Export (
     splitAt
   , break
   , intercalate
@@ -101,6 +101,8 @@ import Data.List  as Export (
   , replicate
   , take
   , takeWhile)
+import Data.List.NonEmpty as Export (
+  NonEmpty(..))
 -- only exporting types. functions should be imported qualified
 import Data.Map      as Export (Map)
 import Data.Set      as Export (Set)
@@ -191,3 +193,8 @@ maybeToLeft r = maybe (Right r) Left
 
 maybeToEither :: Monoid b => (a -> b) -> Maybe a -> b
 maybeToEither = maybe mempty
+
+-- custom classes
+
+class Display a where
+    display :: a -> Text
