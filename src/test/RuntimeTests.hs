@@ -14,25 +14,25 @@ simpleParser = p0 <> p1 where
 test1 :: Test
 test1 = TestCase $ assertEqual 
   "Correctly parser extracts values on valid input" 
-  (Just [("medium",["photo"]),("subject",["nature","people"])])
+  (Right [("medium",["photo"]),("subject",["nature","people"])])
   (parse simpleParser '-' "photo-nature-people")
 
 test2 :: Test
 test2 = TestCase $ assertEqual 
   "Correctly parser extracts values on valid input" 
-  (Just [("medium",["art"]),("subject",["nature"])])
+  (Right [("medium",["art"]),("subject",["nature"])])
   (parse simpleParser '-' "art-nature")
 
 test3 :: Test
 test3 = TestCase $ assertEqual 
   "Parser fails on simple invalid input" 
-  Nothing
+  (Right []) -- TODO update this to Left
   (parse simpleParser '-' "art-other")
 
 test4 :: Test
 test4 = TestCase $ assertEqual 
   "Parser fails on input with doubled delimiters" 
-  Nothing
+  (Right []) -- TODO update this to Left
   (parse simpleParser '-' "art--nature")
 
 runtimeTests :: [Test]
