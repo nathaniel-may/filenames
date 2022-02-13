@@ -26,12 +26,25 @@ lengthMay :: Foldable f => (Int -> Bool) -> f a -> Maybe (f a)
 lengthMay f = g where
     g x = if f (length x) then Just x else Nothing
 
-parseTokens :: P -> [Text] -> Maybe [(Text, [Text])]
+parseTokens :: P -> [Text] -> Either ParseError [(Text, [Text])]
 parseTokens (P f) tokens = case f tokens of
-    Nothing -> Nothing
-    Just (namedTokens, []) -> Just namedTokens
-    Just (_, _ : _) -> Nothing -- TODO Exception
+    -- TODO make this a Left with more info on where it didn't match.
+    Nothing -> Right []
+    Just (namedTokens, []) -> Right namedTokens
+    Just (_, tok : toks) -> Left . UnmatchedTokens $ tok :| toks
 
-parse :: P -> Char -> Text -> Maybe [(Text, [Text])]
+parse :: P -> Char -> Text -> Either ParseError [(Text, [Text])]
 parse parser delim input = parseTokens parser tokens where
     tokens = T.split (==delim) input -- "abc--123" would be ["abc", "", "123"]. TODO handle double delims
+
+
+{-
+This error type is part of expected runtime behavior, and
+therefor isn't an exception.
+-}
+newtype ParseError
+    = UnmatchedTokens (NonEmpty Text)
+    deriving (Eq, Show, Read)
+
+instance Display ParseError where
+    display (UnmatchedTokens (tok :| toks)) = tshow (length toks + 1) <> " unmatched tokens found starting at token: `" <> tok <> "`."
