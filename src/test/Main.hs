@@ -2,10 +2,11 @@ module Main where
 
 import CustomPrelude -- import all
 import LexerTests    (lexerTests)
+import RuntimeTests  (runtimeTests)
 import Test.HUnit    -- import all
 
 allTests :: [Test]
-allTests = lexerTests
+allTests = lexerTests <> runtimeTests
 
 main :: IO ()
 main = do

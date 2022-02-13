@@ -20,6 +20,7 @@ library
   exposed-modules:     CustomPrelude
                       ,Exe
                       ,Parsers
+                      ,Runtime
   hs-source-dirs:      src/lib
   build-depends:       base ==4.13.*
                       ,containers ==0.6.*
@@ -53,7 +54,9 @@ test-suite unit
   main-is:             Main.hs
   hs-source-dirs:      src/test
   other-modules:       LexerTests
+                      ,RuntimeTests
   build-depends:       base ==4.13.*
+                      ,containers ==0.6.*
                       ,filenames
                       ,HUnit
                       ,megaparsec ==9.0.*
