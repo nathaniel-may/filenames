@@ -32,7 +32,7 @@ test3 = TestCase $ assertEqual
 test4 :: Test
 test4 = TestCase $ assertEqual 
   "Parser fails on input with doubled delimiters" 
-  (Right []) -- TODO update this to Left
+  (Left EmptyToken)
   (parse simpleParser '-' "art--nature")
 
 test5 :: Test

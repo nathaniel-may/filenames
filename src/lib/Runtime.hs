@@ -34,17 +34,22 @@ parseTokens (P f) tokens = case f tokens of
     Just (_, tok : toks) -> Left . UnmatchedTokens $ tok :| toks
 
 parse :: P -> Char -> Text -> Either ParseError [(Text, [Text])]
-parse parser delim input = parseTokens parser tokens where
-    tokens = T.split (==delim) input -- "abc--123" would be ["abc", "", "123"]. TODO handle double delims
-
+parse parser delim input = 
+    if T.empty `elem` tokens
+    then Left EmptyToken
+    else parsed where
+    parsed = parseTokens parser tokens
+    tokens = T.split (==delim) input
 
 {-
 This error type is part of expected runtime behavior, and
 therefor isn't an exception.
 -}
-newtype ParseError
-    = UnmatchedTokens (NonEmpty Text)
+data ParseError
+    = EmptyToken
+    | UnmatchedTokens (NonEmpty Text)
     deriving (Eq, Show, Read)
 
 instance Display ParseError where
+    display EmptyToken = "Input has an empty token. Empty tokens are not allowed."
     display (UnmatchedTokens (tok :| toks)) = tshow (length toks + 1) <> " unmatched tokens found starting at token: `" <> tok <> "`."
