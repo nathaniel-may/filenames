@@ -60,6 +60,11 @@ import Control.Applicative as Export (
 -- Monad
 import Control.Monad as Export
 
+-- Exceptions
+import Control.Exception as Export (
+  displayException,
+  Exception)
+
 -- Base typeclasses
 import GHC.Enum         as Export
 import Data.Eq          as Export

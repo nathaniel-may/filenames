@@ -2,7 +2,6 @@
 
 module Parsers where
 
-import           Control.Exception  (displayException, Exception)
 import           CustomPrelude                  hiding (count, some, many, Any)
 import qualified Data.Text                      as T
 import           Text.Megaparsec                -- import all
