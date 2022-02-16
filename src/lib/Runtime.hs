@@ -22,13 +22,10 @@ p name fLen set = P f where
         in do
             x <- if not (fLen 0) && null tokens'
                  then Left $ BadMatch name tok
-                 else maybeToRight (TokenMiscount name $ length tokens') (lengthMay fLen tokens')
+                 else if fLen $ length tokens'
+                      then Right tokens'
+                      else Left . TokenMiscount name $ length tokens'
             pure ([(name, x)], drop (length x) tokens)
-
--- TODO abstract one step further. (Int -> Bool) becomes (f -> Bool)
-lengthMay :: Foldable f => (Int -> Bool) -> f a -> Maybe (f a)
-lengthMay f = g where
-    g x = if f (length x) then Just x else Nothing
 
 parseTokens :: P -> [Text] -> Either ParseError [(Text, [Text])]
 parseTokens (P f) tokens = case f tokens of
