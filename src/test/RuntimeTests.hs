@@ -26,7 +26,7 @@ test2 = TestCase $ assertEqual
 test3 :: Test
 test3 = TestCase $ assertEqual 
   "Parser fails on simple invalid input" 
-  (Right []) -- TODO update this to Left
+  (Left $ TokenMiscount "subject" 0) -- TODO update this to Left
   (parse simpleParser '-' "art-other")
 
 test4 :: Test

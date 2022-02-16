@@ -6,7 +6,7 @@ import qualified Data.Set       as Set
 import qualified Data.Text      as T
 
 
-newtype P = P ([Text] -> Maybe ([(Text, [Text])], [Text]))
+newtype P = P ([Text] -> Either ParseError ([(Text, [Text])], [Text]))
 
 instance Semigroup P where
     (P f) <> (P g) = P $ \x -> do
@@ -16,10 +16,10 @@ instance Semigroup P where
 
 p :: Text -> (Int -> Bool) -> Set Text -> P
 p name fLen set = P f where
-    f :: [Text] -> Maybe ([(Text, [Text])], [Text])
+    f :: [Text] -> Either ParseError ([(Text, [Text])], [Text])
     f tokens = let tokens' = takeWhile (`Set.member` set) tokens
         in do
-            x <- lengthMay fLen tokens'
+            x <- maybeToRight (TokenMiscount name $ length tokens') (lengthMay fLen tokens')
             pure ([(name, x)], drop (length x) tokens)
 
 lengthMay :: Foldable f => (Int -> Bool) -> f a -> Maybe (f a)
@@ -29,27 +29,22 @@ lengthMay f = g where
 parseTokens :: P -> [Text] -> Either ParseError [(Text, [Text])]
 parseTokens (P f) tokens = case f tokens of
     -- TODO make this a Left with more info on where it didn't match.
-    Nothing -> Right []
-    Just (namedTokens, []) -> Right namedTokens
-    Just (_, tok : toks) -> Left . UnmatchedTokens $ tok :| toks
+    Left e -> Left e
+    Right (namedTokens, []) -> Right namedTokens
+    Right (_, tok : toks) -> Left . UnmatchedTokens $ tok :| toks
 
 parse :: P -> Char -> Text -> Either ParseError [(Text, [Text])]
-parse parser delim input = 
-    if T.empty `elem` tokens
-    then Left EmptyToken
-    else parsed where
-    parsed = parseTokens parser tokens
-    tokens = T.split (==delim) input
+parse parser delim input = parseTokens parser $ T.split (==delim) input
 
 {-
 This error type is part of expected runtime behavior, and
 therefor isn't an exception.
 -}
 data ParseError
-    = EmptyToken
+    = TokenMiscount Text Int
     | UnmatchedTokens (NonEmpty Text)
     deriving (Eq, Show, Read)
 
 instance Display ParseError where
-    display EmptyToken = "Input has an empty token. Empty tokens are not allowed."
+    display (TokenMiscount groupName matches) = "The token group `" <> groupName <> "` matched an invalid number of tokens: " <> tshow matches <> "."
     display (UnmatchedTokens (tok :| toks)) = tshow (length toks + 1) <> " unmatched tokens found starting at token: `" <> tok <> "`."
