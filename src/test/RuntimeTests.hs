@@ -26,20 +26,26 @@ test2 = TestCase $ assertEqual
 test3 :: Test
 test3 = TestCase $ assertEqual 
   "Parser fails on simple invalid input" 
-  (Left $ TokenMiscount "subject" 0) -- TODO update this to Left
+  (Left $ BadMatch "subject" "other")
   (parse simpleParser '-' "art-other")
 
 test4 :: Test
 test4 = TestCase $ assertEqual 
   "Parser fails on input with doubled delimiters" 
-  (Left EmptyToken)
+  (Left $ BadMatch "subject" "")
   (parse simpleParser '-' "art--nature")
 
 test5 :: Test
 test5 = TestCase $ assertEqual 
   "Parser fails on input with extra tokens that can't be matched" 
-  (Left (UnmatchedTokens ("art" :| [])))
+  (Left . UnmatchedTokens $ "art" :| [])
   (parse simpleParser '-' "art-nature-art")
 
+test6 :: Test
+test6 = TestCase $ assertEqual 
+  "Parser fails on input too many matching tokens" 
+  (Left $ TokenMiscount "medium" 2)
+  (parse simpleParser '-' "art-photo")
+
 runtimeTests :: [Test]
-runtimeTests = [test1, test2, test3, test4, test5]
+runtimeTests = [test1, test2, test3, test4, test5, test6]

@@ -17,11 +17,15 @@ instance Semigroup P where
 p :: Text -> (Int -> Bool) -> Set Text -> P
 p name fLen set = P f where
     f :: [Text] -> Either ParseError ([(Text, [Text])], [Text])
-    f tokens = let tokens' = takeWhile (`Set.member` set) tokens
+    f [] = if fLen 0 then Right ([], []) else Left $ NoTokensToMatch name
+    f tokens@(tok : _) = let tokens' = takeWhile (`Set.member` set) tokens
         in do
-            x <- maybeToRight (TokenMiscount name $ length tokens') (lengthMay fLen tokens')
+            x <- if not (fLen 0) && null tokens'
+                 then Left $ BadMatch name tok
+                 else maybeToRight (TokenMiscount name $ length tokens') (lengthMay fLen tokens')
             pure ([(name, x)], drop (length x) tokens)
 
+-- TODO abstract one step further. (Int -> Bool) becomes (f -> Bool)
 lengthMay :: Foldable f => (Int -> Bool) -> f a -> Maybe (f a)
 lengthMay f = g where
     g x = if f (length x) then Just x else Nothing
@@ -40,10 +44,14 @@ This error type is part of expected runtime behavior, and
 therefor isn't an exception.
 -}
 data ParseError
-    = TokenMiscount Text Int
+    = BadMatch Text Text
+    | NoTokensToMatch Text
+    | TokenMiscount Text Int
     | UnmatchedTokens (NonEmpty Text)
     deriving (Eq, Show, Read)
 
 instance Display ParseError where
-    display (TokenMiscount groupName matches) = "The token group `" <> groupName <> "` matched an invalid number of tokens: " <> tshow matches <> "."
+    display (BadMatch groupName token) = "The token group `" <> groupName <> "` didn't match enough tokens before encountering the foreign token `" <> token <> "`."
+    display (NoTokensToMatch groupName) = "The token group `" <> groupName <> "` matches a non-zero number of tokens, but there are no tokens to match."
+    display (TokenMiscount groupName matches) = "The token group `" <> groupName <> "` matched an invalid number of tokens. Matched: " <> tshow matches <> "."
     display (UnmatchedTokens (tok :| toks)) = tshow (length toks + 1) <> " unmatched tokens found starting at token: `" <> tok <> "`."
