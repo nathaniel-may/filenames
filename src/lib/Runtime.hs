@@ -28,7 +28,6 @@ lengthMay f = g where
 
 parseTokens :: P -> [Text] -> Either ParseError [(Text, [Text])]
 parseTokens (P f) tokens = case f tokens of
-    -- TODO make this a Left with more info on where it didn't match.
     Left e -> Left e
     Right (namedTokens, []) -> Right namedTokens
     Right (_, tok : toks) -> Left . UnmatchedTokens $ tok :| toks
