@@ -1,4 +1,4 @@
-module RuntimeTests where
+module RuntimeTests (tests) where
 
 import           CustomPrelude -- import all
 import           Runtime       -- import all
@@ -66,5 +66,5 @@ test8 = TestCase $ assertEqual
   (Left $ BadMatch "subject" "")
   (parse simpleParser '-' "art-")
 
-runtimeTests :: [Test]
-runtimeTests = [test1, test2, test3, test4, test5, test6, test7, test8]
+tests :: [Test]
+tests = [test1, test2, test3, test4, test5, test6, test7, test8]

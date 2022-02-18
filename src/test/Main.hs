@@ -1,12 +1,12 @@
 module Main where
 
-import CustomPrelude -- import all
-import LexerTests    (lexerTests)
-import RuntimeTests  (runtimeTests)
-import Test.HUnit    -- import all
+import           CustomPrelude -- import all
+import qualified LexerTests
+import qualified RuntimeTests
+import           Test.HUnit    -- import all
 
 allTests :: [Test]
-allTests = lexerTests <> runtimeTests
+allTests = LexerTests.tests <> RuntimeTests.tests
 
 main :: IO ()
 main = do

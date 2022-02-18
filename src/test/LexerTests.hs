@@ -1,4 +1,4 @@
-module LexerTests where
+module LexerTests (tests) where
 
 import           CustomPrelude   -- import all
 import           Parsers         -- import all
@@ -37,5 +37,5 @@ test4 = TestCase $ assertEqual
   (Right [Tag "fghi", Id "12345G"])
   (parse (filename schema) "unit-test" "fghi-12345G.pdf")
 
-lexerTests :: [Test]
-lexerTests = [test1, test2, test3, test4]
+tests :: [Test]
+tests = [test1, test2, test3, test4]
