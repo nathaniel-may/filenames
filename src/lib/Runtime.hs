@@ -1,27 +1,21 @@
 module Runtime where
 
 import           CustomPrelude  -- import all
-import           Data.Semigroup (Semigroup)
 import qualified Data.Set       as Set
 import qualified Data.Text      as T
 
 
-data TagInfo = TagGroup { name :: !Text
-                        , tags :: ![Text] }
-             deriving (Eq, Ord, Show, Read)
+data TagGroup
+    = TagGroup { name :: !Text
+               , tags :: ![Text] }
+    deriving (Eq, Ord, Show, Read)
 
-newtype TagGroup = FileName [TagGroup] deriving (Eq, Ord, Show, Read)
+newtype Filename 
+    = Filename [TagGroup]
+    deriving (Eq, Ord, Show, Read)
 
-newtype Parser a =
-  Parser { runParser :: [Text] -> Either ParseError (a, [Text]) }
-
-newtype P = P ([Text] -> Either ParseError ([(Text, [Text])], [Text]))
-
-instance Semigroup P where
-    (P f) <> (P g) = P $ \x -> do
-        (fparsed, frest) <- f x
-        (gparsed, grest) <- g frest
-        pure (fparsed <> gparsed, grest)
+newtype Parser a
+    = Parser { runParser :: [Text] -> Either ParseError (a, [Text]) }
 
 instance Functor Parser where
     fmap f (Parser run) = Parser $ \x -> do
@@ -41,10 +35,10 @@ instance Monad Parser where
         let (Parser run2) = f parsed
         run2 rest
 
-p :: Text -> (Int -> Bool) -> Set Text -> P
-p n fLen set = P f where
-    f :: [Text] -> Either ParseError ([(Text, [Text])], [Text])
-    f [] = if fLen 0 then Right ([], []) else Left $ NoTokensToMatch n
+p :: Text -> (Int -> Bool) -> Set Text -> Parser TagGroup
+p n fLen set = Parser f where
+    f :: [Text] -> Either ParseError (TagGroup, [Text])
+    f [] = if fLen 0 then Right (TagGroup n [], []) else Left $ NoTokensToMatch n
     f tokens@(tok : _) = let tokens' = takeWhile (`Set.member` set) tokens
         in do
             x <- if not (fLen 0) && null tokens'
@@ -52,15 +46,15 @@ p n fLen set = P f where
                  else if fLen $ length tokens'
                       then Right tokens'
                       else Left . TokenMiscount n $ length tokens'
-            pure ([(n, x)], drop (length x) tokens)
+            pure (TagGroup n x, drop (length x) tokens)
 
-parseTokens :: P -> [Text] -> Either ParseError [(Text, [Text])]
-parseTokens (P f) tokens = case f tokens of
+parseTokens :: Parser Filename -> [Text] -> Either ParseError Filename
+parseTokens (Parser f) tokens = case f tokens of
     Left e -> Left e
     Right (namedTokens, []) -> Right namedTokens
     Right (_, tok : toks) -> Left . UnmatchedTokens $ tok :| toks
 
-parse :: P -> Char -> Text -> Either ParseError [(Text, [Text])]
+parse :: Parser Filename -> Char -> Text -> Either ParseError Filename
 parse parser delim input = parseTokens parser $ T.split (==delim) input
 
 {-

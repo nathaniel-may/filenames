@@ -1,26 +1,33 @@
 module RuntimeTests where
 
 import           CustomPrelude -- import all
-import           Runtime       (P, p, parse, ParseError(..))
+import           Runtime       -- import all
 import qualified Data.Set      as Set
 import           Test.HUnit    -- import all
 
 
-simpleParser :: P
-simpleParser = p0 <> p1 where
-    p0 = p "medium" (==1) (Set.fromList ["art", "photo"])
-    p1 = p "subject" (>=1) (Set.fromList ["nature", "people", "architecture"])
+simpleParser :: Parser Filename
+simpleParser = Filename <$> sequence [
+    p "medium"  (==1) (Set.fromList ["art", "photo"])
+  , p "subject" (>=1) (Set.fromList ["nature", "people", "architecture"])
+  ]
 
 test1 :: Test
 test1 = TestCase $ assertEqual 
   "Correctly parser extracts values on valid input" 
-  (Right [("medium",["photo"]),("subject",["nature","people"])])
+  (Right $ Filename [
+      TagGroup "medium"  ["photo"]
+    , TagGroup "subject" ["nature","people"]
+  ])
   (parse simpleParser '-' "photo-nature-people")
 
 test2 :: Test
 test2 = TestCase $ assertEqual 
   "Correctly parser extracts values on valid input" 
-  (Right [("medium",["art"]),("subject",["nature"])])
+  (Right $ Filename [
+      TagGroup "medium"  ["art"]
+    , TagGroup "subject" ["nature"]
+  ])
   (parse simpleParser '-' "art-nature")
 
 test3 :: Test
