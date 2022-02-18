@@ -32,7 +32,7 @@ library
   default-extensions:  NoImplicitPrelude
                        OverloadedStrings
   ghc-options:         -Wall
-                       -fno-warn-orphans
+                       -Werror
                        -O2
   default-language:    Haskell2010              
 
@@ -44,7 +44,7 @@ executable filenames
   default-extensions:  NoImplicitPrelude
                        OverloadedStrings
   ghc-options:         -Wall
-                       -fno-warn-orphans
+                       -Werror
                        -O2
   --other-modules:                   
   default-language:    Haskell2010
@@ -66,4 +66,5 @@ test-suite unit
   default-extensions:  NoImplicitPrelude
                        OverloadedStrings
   ghc-options:         -Wall
+                       -Werror
   default-language:    Haskell2010
