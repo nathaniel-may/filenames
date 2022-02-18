@@ -54,5 +54,17 @@ test6 = TestCase $ assertEqual
   (Left $ TokenMiscount "medium" 2)
   (parse simpleParser '-' "art-photo")
 
+test7 :: Test
+test7 = TestCase $ assertEqual 
+  "Parser fails when a group has no tokens to match" 
+  (Left $ NoTokensToMatch "subject")
+  (parse simpleParser '-' "art")
+
+test8 :: Test
+test8 = TestCase $ assertEqual 
+  "Parser fails when a group without the empty string is matched against an empty string tag" 
+  (Left $ BadMatch "subject" "")
+  (parse simpleParser '-' "art-")
+
 runtimeTests :: [Test]
-runtimeTests = [test1, test2, test3, test4, test5, test6]
+runtimeTests = [test1, test2, test3, test4, test5, test6, test7, test8]
