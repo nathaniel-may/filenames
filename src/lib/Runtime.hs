@@ -6,6 +6,15 @@ import qualified Data.Set       as Set
 import qualified Data.Text      as T
 
 
+data TagInfo = TagGroup { name :: !Text
+                        , tags :: ![Text] }
+             deriving (Eq, Ord, Show, Read)
+
+newtype TagGroup = FileName [TagGroup] deriving (Eq, Ord, Show, Read)
+
+newtype Parser a =
+  Parser { runParser :: [Text] -> Either ParseError (a, [Text]) }
+
 newtype P = P ([Text] -> Either ParseError ([(Text, [Text])], [Text]))
 
 instance Semigroup P where
@@ -14,18 +23,36 @@ instance Semigroup P where
         (gparsed, grest) <- g frest
         pure (fparsed <> gparsed, grest)
 
+instance Functor Parser where
+    fmap f (Parser run) = Parser $ \x -> do
+        (parsed, rest) <- run x
+        pure (f parsed, rest)
+
+instance Applicative Parser where
+    pure x = Parser $ \rest -> Right (x, rest)
+    liftA2 f (Parser runx) (Parser runy) = Parser $ \x -> do
+        (y, restx) <- runx x
+        (z, resty) <- runy restx
+        pure (f y z, resty)
+
+instance Monad Parser where
+    (Parser run) >>= f = Parser $ \x -> do 
+        (parsed, rest) <- run x
+        let (Parser run2) = f parsed
+        run2 rest
+
 p :: Text -> (Int -> Bool) -> Set Text -> P
-p name fLen set = P f where
+p n fLen set = P f where
     f :: [Text] -> Either ParseError ([(Text, [Text])], [Text])
-    f [] = if fLen 0 then Right ([], []) else Left $ NoTokensToMatch name
+    f [] = if fLen 0 then Right ([], []) else Left $ NoTokensToMatch n
     f tokens@(tok : _) = let tokens' = takeWhile (`Set.member` set) tokens
         in do
             x <- if not (fLen 0) && null tokens'
-                 then Left $ BadMatch name tok
+                 then Left $ BadMatch n tok
                  else if fLen $ length tokens'
                       then Right tokens'
-                      else Left . TokenMiscount name $ length tokens'
-            pure ([(name, x)], drop (length x) tokens)
+                      else Left . TokenMiscount n $ length tokens'
+            pure ([(n, x)], drop (length x) tokens)
 
 parseTokens :: P -> [Text] -> Either ParseError [(Text, [Text])]
 parseTokens (P f) tokens = case f tokens of
