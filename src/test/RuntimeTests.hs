@@ -68,9 +68,15 @@ test8 = TestCase $ assertEqual
 
 test9 :: Test
 test9 = TestCase $ assertEqual 
-  "Parser fails when a group without the empty string is matched against an empty string tag" 
+  "Parser fails when a token matches multiple times in the same group" 
   (Left . MultipleMatches $ Set.fromList ["nature"])
   (parse simpleParser '-' "art-nature-nature")
 
+test10 :: Test
+test10 = TestCase $ assertEqual 
+  "Parser fails when multiple tokens match multiple times in the same group" 
+  (Left . MultipleMatches $ Set.fromList ["nature", "people"])
+  (parse simpleParser '-' "art-nature-people-nature-people-architecture")
+
 tests :: [Test]
-tests = [test1, test2, test3, test4, test5, test6, test7, test8, test9]
+tests = [test1, test2, test3, test4, test5, test6, test7, test8, test9, test10]
