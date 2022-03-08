@@ -66,5 +66,11 @@ test8 = TestCase $ assertEqual
   (Left $ BadMatch "subject" "")
   (parse simpleParser '-' "art-")
 
+test9 :: Test
+test9 = TestCase $ assertEqual 
+  "Parser fails when a group without the empty string is matched against an empty string tag" 
+  (Left . MultipleMatches $ Set.fromList ["nature"])
+  (parse simpleParser '-' "art-nature-nature")
+
 tests :: [Test]
-tests = [test1, test2, test3, test4, test5, test6, test7, test8]
+tests = [test1, test2, test3, test4, test5, test6, test7, test8, test9]

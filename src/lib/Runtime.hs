@@ -39,14 +39,17 @@ p :: Text -> (Int -> Bool) -> Set Text -> Parser TagGroup
 p n fLen set = Parser f where
     f :: [Text] -> Either ParseError (TagGroup, [Text])
     f [] = if fLen 0 then Right (TagGroup n [], []) else Left $ NoTokensToMatch n
-    f tokens@(tok : _) = let tokens' = takeWhile (`Set.member` set) tokens
-        in do
+    f tokens@(tok : _) = do
             x <- if not (fLen 0) && null tokens'
                  then Left $ BadMatch n tok
-                 else if fLen $ length tokens'
-                      then Right tokens'
-                      else Left . TokenMiscount n $ length tokens'
-            pure (TagGroup n x, drop (length x) tokens)
+                 else if not . null $ dups
+                     then Left $ MultipleMatches dups
+                     else if fLen $ length tokens'
+                         then Right tokens'
+                         else Left . TokenMiscount n $ length tokens'
+            pure (TagGroup n x, drop (length x) tokens) where
+                tokens' = takeWhile (`Set.member` set) tokens
+                dups = duplicates tokens'
 
 parseTokens :: Parser Filename -> [Text] -> Either ParseError Filename
 parseTokens (Parser f) tokens = case f tokens of
@@ -57,12 +60,19 @@ parseTokens (Parser f) tokens = case f tokens of
 parse :: Parser Filename -> Char -> Text -> Either ParseError Filename
 parse parser delim input = parseTokens parser $ T.split (==delim) input
 
+duplicates :: Ord a => [a] -> Set a
+duplicates xs = snd $ foldr 
+    (\x (seen, dups) -> if Set.member x seen then (seen, Set.insert x dups) else (Set.insert x seen, dups)) 
+    (Set.empty, Set.empty) 
+    xs
+
 {-
 This error type is part of expected runtime behavior, and
 therefor isn't an exception.
 -}
 data ParseError
     = BadMatch Text Text
+    | MultipleMatches (Set Text)
     | NoTokensToMatch Text
     | TokenMiscount Text Int
     | UnmatchedTokens (NonEmpty Text)
@@ -70,6 +80,7 @@ data ParseError
 
 instance Display ParseError where
     display (BadMatch groupName token) = "The token group `" <> groupName <> "` didn't match enough tokens before encountering the foreign token `" <> token <> "`."
+    display (MultipleMatches tokens) = "the tokens " <> tshow (Set.elems tokens) <> "matched more than once in a single group. Tokens must match at most once."
     display (NoTokensToMatch groupName) = "The token group `" <> groupName <> "` matches a non-zero number of tokens, but there are no tokens to match."
     display (TokenMiscount groupName matches) = "The token group `" <> groupName <> "` matched an invalid number of tokens. Matched: " <> tshow matches <> "."
     display (UnmatchedTokens (tok :| toks)) = tshow (length toks + 1) <> " unmatched tokens found starting at token: `" <> tok <> "`."
