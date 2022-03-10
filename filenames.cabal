@@ -18,8 +18,6 @@ source-repository      head
 
 library
   exposed-modules:     CustomPrelude
-                      ,Exe
-                      ,Parsers
                       ,Runtime
   hs-source-dirs:      src/lib
   build-depends:       base ==4.13.*
@@ -53,8 +51,7 @@ test-suite unit
   type:                exitcode-stdio-1.0
   main-is:             Main.hs
   hs-source-dirs:      src/test
-  other-modules:       LexerTests
-                      ,RuntimeTests
+  other-modules:       RuntimeTests
   build-depends:       base ==4.13.*
                       ,containers ==0.6.*
                       ,filenames

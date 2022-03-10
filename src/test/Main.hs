@@ -1,12 +1,11 @@
 module Main where
 
 import           CustomPrelude -- import all
-import qualified LexerTests
 import qualified RuntimeTests
 import           Test.HUnit    -- import all
 
 allTests :: [Test]
-allTests = LexerTests.tests <> RuntimeTests.tests
+allTests = RuntimeTests.tests
 
 main :: IO ()
 main = do

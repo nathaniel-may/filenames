@@ -1,7 +1,6 @@
 module Main where
 
-import           CustomPrelude
-import qualified Exe
+import CustomPrelude
 
 main :: IO ()
-main = Exe.main
+main = putStrLn "under construction"
