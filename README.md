@@ -61,4 +61,5 @@ run unit tests with `make test`
 - instead of interpreting, have it target Haskell and call ghc to compile an artifact
 - add non-local constraints like the ability to enforce uniqueness and that incrementing counters are consecutive. 
 - Have it work recursively across subdirectories. Would have to decide how non-local constraints like uniqueness and consequitive numbers interact with directory boundaries.
+- Tests for local development
 - Migrate a directory from one naming scheme to another
