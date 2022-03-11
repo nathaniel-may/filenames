@@ -15,7 +15,7 @@ format := with_delim d [
     no_delim (==1) ["art", "photo"]
   , delim d (>=0) ["nature", "architecture", "people"]
   , id
-  , no_delim (>=0) ["1", "2", "3", "4",  "5",  "6", "7", "8", "9"]
+  , no_delim (>=0) ["1", "2", "3", "4", "5", "6", "7", "8", "9"]
   ]
 
 id := no_delim (==6) id_chars
