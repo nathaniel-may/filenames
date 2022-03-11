@@ -10,9 +10,9 @@ typecheck :: ExprU -> Either TypeException ExprT
 typecheck (StringU s) = Right $ StringT s
 typecheck (IntU i) = Right $ IntT i
 typecheck (ListU []) = Right $ ListT StringTag []
-typecheck (ListU (x : xs)) = do
+typecheck (ListU elems@(x : _)) = do
     expectedType <- inferType =<< typecheck x
-    checked <- sequence $ typecheck <$> xs
+    checked <- sequence $ typecheck <$> elems
     inferred <- sequence $ inferType <$> checked
     if all (== expectedType) inferred
     then Right $ ListT expectedType checked

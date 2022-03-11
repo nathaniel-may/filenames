@@ -22,5 +22,11 @@ test2 = TestCase $ assertEqual
   , ListU [StringU "hello world"]
   ]))
 
+test3 :: Test
+test3 = TestCase $ assertEqual 
+  "homogeneous list typechecks" 
+  (Right $ ListT StringTag [StringT "hello", StringT "world"])
+  (typecheck (ListU [StringU "hello", StringU "world"]))
+
 tests :: [Test]
-tests = [test1, test2]
+tests = [test1, test2, test3]
