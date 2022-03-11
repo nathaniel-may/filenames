@@ -18,7 +18,11 @@ source-repository      head
 
 library
   exposed-modules:     CustomPrelude
+                      ,BuiltIns
+                      ,Exceptions
                       ,Runtime
+                      ,TypeChecker
+                      ,Types
   hs-source-dirs:      src/lib
   build-depends:       base ==4.13.*
                       ,containers ==0.6.*
