@@ -9,12 +9,14 @@ data ExprU
     = StringU Text
     | IntU Int -- TODO nat?
     | ListU [ExprU]
+    deriving (Read, Show, Eq)
 
 data ExprT
     = StringT Text
     | IntT Int
     | BoolT Bool
     | ListT Type [ExprT]
+    deriving (Read, Show, Eq)
 
 data Type
     = StringTag
