@@ -7,7 +7,7 @@ import qualified Data.Text             as T
 import           Exceptions            (CompilationException)
 import           System.FilePath.Posix (takeBaseName)
 import           System.IO             (readFile, writeFile)
-import           System.Process        (readProcessWithExitCode)
+import           System.Process        (callCommand, readProcessWithExitCode)
 import           Test.HUnit            -- import all
 
 
@@ -25,8 +25,11 @@ main = do
 
 data SourceFile = SourceFile FilePath Text
 
+targetDir :: Text
+targetDir = "src/integration/target/"
+
 uniqueFilepaths :: [String]
-uniqueFilepaths = (T.unpack "./src/integration/target/test" <>) . show <$> [0..]
+uniqueFilepaths = (<> T.unpack ".txt") . (\n -> T.unpack targetDir <> T.unpack "test" <> n) . show <$> [0..]
 
 runProgram :: SourceFile -> IO (Either CompilationException (IO Text))
 runProgram (SourceFile sourcePath source) = do
@@ -55,5 +58,6 @@ test1 sourcePath = do
 
 testsIO :: IO [Test]
 testsIO = do 
+    callCommand $ T.unpack $ "mkdir -p " <> targetDir
     let allTests = [test1]
     zipWithM ($) allTests uniqueFilepaths

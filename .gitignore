@@ -1,5 +1,8 @@
 # Haskell
 dist-newstyle/
 
+# Tests
+src/integration/target
+
 # CircleCI local runner
 process.yml

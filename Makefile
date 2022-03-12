@@ -15,6 +15,7 @@ unit:
 
 .PHONY: integration
 integration:
+	rm -rf src/integration/target && \
 	cabal new-test integration --enable-tests --ghc-options=-Wwarn
 
 # runs unit and integration test
