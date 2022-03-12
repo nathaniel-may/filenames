@@ -13,6 +13,11 @@ ci:
 unit:
 	cabal new-test unit --enable-tests --ghc-options=-Wwarn
 
-# alias for unit, but in the future could include multiple kinds of tests
+.PHONY: integration
+integration:
+	cabal new-test integration --enable-tests --ghc-options=-Wwarn
+
+# runs unit and integration test
 .PHONY: test
-test: unit
+test: unit integration
+

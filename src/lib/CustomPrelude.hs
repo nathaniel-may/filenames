@@ -100,7 +100,9 @@ import Data.List as Export (
   , reverse
   , replicate
   , take
-  , takeWhile)
+  , takeWhile
+  , zip
+  , zipWith)
 import Data.List.NonEmpty as Export (
   NonEmpty(..))
 -- only exporting types. functions should be imported qualified

@@ -16,6 +16,7 @@ data RuntimeException
     | Boop200
     deriving (Read, Show, Eq)
 
+-- TODO remove runtime exceptions.
 data CompilationException
     = ParseErr ParseException
     | TypeErr TypeException
