@@ -7,7 +7,7 @@ import           Exceptions            (CompilationException(..))
 import           Options.Applicative   -- import all
 import           Parsers               (parse)
 import           System.IO             (readFile, writeFile)
-import           System.FilePath.Posix (takeBaseName)
+import           System.FilePath.Posix (replaceExtension)
 import           System.Process        (callCommand)
 import           TypeChecker           (typecheck)
 
@@ -31,9 +31,8 @@ opts = info (cli <**> helper)
 -- outputs an executable from source
 run :: Input -> IO (Either CompilationException (IO ()))
 run (Input filepath) = do
-    let name = T.pack $ takeBaseName filepath
     source <- T.pack <$> readFile filepath
-    pure $ ghcCompile name <$> compile source
+    pure $ ghcCompile filepath <$> compile source
 
 -- outputs codegen from source
 compile :: Text -> Either CompilationException Text
@@ -43,9 +42,9 @@ compile source = do
     pure (gen checked)
 
 -- writes codegen string to a file and runs system ghc on it
-ghcCompile :: Text -> Text -> IO ()
-ghcCompile name source = do
-    let targetPath = T.unpack $ name <> ".hs"
+ghcCompile :: FilePath -> Text -> IO ()
+ghcCompile sourcePath source = do
+    let targetPath = replaceExtension sourcePath ".hs"
     writeFile targetPath (T.unpack source)
     callCommand $ "ghc " <> targetPath
 

@@ -5,8 +5,8 @@ import           CustomPrelude         -- import all
 import           Data.String           (String)
 import qualified Data.Text             as T
 import           Exceptions            (CompilationException)
-import           System.FilePath.Posix (takeBaseName)
-import           System.IO             (readFile, writeFile)
+import           System.FilePath.Posix (dropExtension)
+import           System.IO             (writeFile)
 import           System.Process        (callCommand, readProcessWithExitCode)
 import           Test.HUnit            -- import all
 
@@ -29,31 +29,40 @@ targetDir :: Text
 targetDir = "src/integration/target/"
 
 uniqueFilepaths :: [String]
-uniqueFilepaths = (<> T.unpack ".txt") . (\n -> T.unpack targetDir <> T.unpack "test" <> n) . show <$> [0..]
+uniqueFilepaths = (<> T.unpack ".txt") . (\n -> T.unpack targetDir <> T.unpack "test" <> n) . (show :: Integer -> String) <$> [0..]
 
 runProgram :: SourceFile -> IO (Either CompilationException (IO Text))
 runProgram (SourceFile sourcePath source) = do
     -- write the source file
     writeFile sourcePath (T.unpack source)
     -- compiles source to target file
-    x <- run (Input sourcePath)
-    let targetPath = takeBaseName sourcePath
-    -- run the resulting program
-    let stdin' = ""
-    (_, stdout', stderr') <- readProcessWithExitCode ("./" <> targetPath) [] stdin'
-    -- return stdout only if stderr is empty
-    let result = T.pack (stderr' <|> stdout')
-    pure . pure . pure $ result
+    e <- run (Input sourcePath)
+    case e of
+        -- compilation failed
+        (Left err) -> pure $ Left err
+        -- compilation passed
+        (Right postCompileIO) -> do
+            -- makes the executable
+            postCompileIO
+            let targetPath = dropExtension sourcePath
+            -- executable permissions (TODO is this necessary?)
+            callCommand $ "chmod +x " <> targetPath
+            -- run the resulting program
+            let stdin' = ""
+            (_, stdout', stderr') <- readProcessWithExitCode targetPath [] stdin'
+            -- return stdout only if stderr is empty
+            let result = T.pack (stderr' <|> stdout')
+            pure . pure . pure $ result
 
 test1 :: FilePath -> IO Test
 test1 sourcePath = do
-    e <- runProgram (SourceFile sourcePath "[1, 2, 3]")
+    e <- runProgram (SourceFile sourcePath "[\"a\", \"b\", \"c\"]")
     output <- case e of
         (Left err) -> pure (display err)
         (Right stdout) -> stdout
     pure . TestCase $ assertEqual 
-        "Source to code gen for simple int list works" 
-        "[1, 2, 3]"
+        "source for printing a simple int list works" 
+        "[\"a\",\"b\",\"c\"]\n"
         output
 
 testsIO :: IO [Test]
