@@ -185,6 +185,10 @@ leftToMaybe = either Just (const Nothing)
 rightToMaybe :: Either l r -> Maybe r
 rightToMaybe = either (const Nothing) Just
 
+mapLeft :: (l -> x) -> Either l r -> Either x r
+mapLeft f (Left x) = Left $ f x
+mapLeft _ (Right x) = Right x
+
 maybeToRight :: l -> Maybe r -> Either l r
 maybeToRight l = maybe (Left l) Right
 
