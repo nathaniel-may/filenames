@@ -1,6 +1,7 @@
 module Main where
 
-import CustomPrelude
+import           CustomPrelude --i mport all
+import qualified Cli
 
 main :: IO ()
-main = putStrLn "under construction"
+main = Cli.main

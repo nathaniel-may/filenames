@@ -2,6 +2,10 @@ module Exceptions where
 
 import CustomPrelude -- import all
 
+data ParseException
+    = Boop10
+    | Boop20
+
 data TypeException
     = Boop1
     | Boop2
