@@ -2,7 +2,7 @@ module Cli where
 
 import           CodeGen               (gen)
 import           CustomPrelude         -- import all
-import qualified Data.Text as T
+import qualified Data.Text             as T
 import           Exceptions            (CompilationException(..))
 import           Options.Applicative   -- import all
 import           Parsers               (parse)
