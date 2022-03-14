@@ -11,7 +11,7 @@ import           Parsers         (assignment, parse)
 
 
 assertEqual' :: (Eq a, Eq b, Show a, Show b, Display b) => String -> Either b a -> Either b a -> Assertion
-assertEqual' _ _ (Left err) = assertString (T.unpack $ display err)
+assertEqual' _ (Right _) (Left err) = assertString (T.unpack $ display err)
 assertEqual' name expected v = assertEqual name expected v
 
 test1 :: Test

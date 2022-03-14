@@ -27,6 +27,7 @@ data RuntimeException
 data CompilationException
     = ParseErr ParseException
     | TypeErr TypeException
+    deriving (Show, Eq)
 
 instance Display ParseException where
     display (ParseException bundle) = T.pack $ errorBundlePretty bundle
