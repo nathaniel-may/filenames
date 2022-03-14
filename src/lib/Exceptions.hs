@@ -14,7 +14,7 @@ data TypeException
     | FormatNotFound
     | ListTypeMismatch Type Type
     | NoValueNamed Name
-    | TypeMismatch Type Type
+    | TypeMismatch Type (Maybe Type)
     | TopLevelNotAssignment Type
     deriving (Read, Show, Eq)
 
@@ -36,7 +36,8 @@ instance Display TypeException where
     display FormatNotFound = "FormatNotFound: No value named 'format' found. 'format' is a required value."
     display (ListTypeMismatch expected got) = "ListTypeMismatch: List of type " <> display (ListTag expected) <> " but got " <> display (ListTag got) <> "." 
     display (NoValueNamed (Name name)) = "NoValueNamed: No value named '" <> name <> "'."
-    display (TypeMismatch expected got) = "TypeMismatch: Expected type " <> display expected <> " but got type " <> display got <> "."
+    display (TypeMismatch expected Nothing) = "TypeMismatch: Expected type " <> display expected <> " but got an uninferable type."
+    display (TypeMismatch expected (Just got)) = "TypeMismatch: Expected type " <> display expected <> " but got type " <> display got <> "."
     display (TopLevelNotAssignment got) = "TopLevelNotAssignment: All top-level expressions must be assignments. Found the following types: " <> display got <> "."
 
 instance Display RuntimeException where

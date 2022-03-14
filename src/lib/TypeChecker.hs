@@ -65,20 +65,19 @@ typecheck_ table (IdentifierU name) = do
 
 
 checkType :: Type -> ExprT -> Either TypeException ()
-checkType UnknownTag got = Left $ TypeMismatch UnknownTag (fromRight UnknownTag $ inferType got)
 checkType UnitTag UnitT = Right ()
-checkType UnitTag got = Left $ TypeMismatch UnitTag (fromRight UnknownTag $ inferType got)
+checkType UnitTag got = Left $ TypeMismatch UnitTag (rightToMaybe $ inferType got)
 checkType StringTag (StringT _) = Right ()
-checkType StringTag got = Left $ TypeMismatch StringTag (fromRight UnknownTag $ inferType got)
+checkType StringTag got = Left $ TypeMismatch StringTag (rightToMaybe $ inferType got)
 checkType IntTag (IntT _) = Right ()
-checkType IntTag got = Left $ TypeMismatch IntTag (fromRight UnknownTag $ inferType got)
+checkType IntTag got = Left $ TypeMismatch IntTag (rightToMaybe $ inferType got)
 checkType BoolTag (BoolT _) = Right ()
-checkType BoolTag got = Left $ TypeMismatch BoolTag (fromRight UnknownTag $ inferType got)
+checkType BoolTag got = Left $ TypeMismatch BoolTag (rightToMaybe $ inferType got)
 checkType expected@(ListTag t) (ListT t' xs) = 
     if t == t'
-    then Left $ TypeMismatch expected (ListTag t')
+    then Left $ TypeMismatch expected (Just $ ListTag t')
     else mapM_ (checkType t) xs
-checkType expected@(ListTag _) got = Left $ TypeMismatch expected (fromRight UnknownTag $ inferType got)
+checkType expected@(ListTag _) got = Left $ TypeMismatch expected (rightToMaybe $ inferType got)
 
 inferType' :: (a, ExprT) -> Either TypeException Type
 inferType' = inferType . snd
