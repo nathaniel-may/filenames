@@ -98,6 +98,7 @@ import Data.List as Export (
   , dropWhile
   , filter
   , group
+  , repeat
   , reverse
   , replicate
   , take
@@ -135,6 +136,9 @@ identity x = x
 bind :: Monad m => (a -> m b) -> m a -> m b
 bind = (=<<)
 
+if' :: Bool -> a -> a -> a
+if' condition then' else' = if condition then then' else else'
+
 ifM :: Monad m => m Bool -> m a -> m a -> m a
 ifM p x y = (\b -> if b then x else y) =<< p
 
@@ -154,6 +158,10 @@ count f = foldr (\x n -> if f x then n + 1 else n) 0
 
 none :: Foldable f => (a -> Bool) -> f a -> Bool
 none f = not . any f
+
+interleave :: [a] -> [a] -> [a]
+interleave (x:xs) (y:ys) = x : y : interleave xs ys
+interleave _      _      = []
 
 -- * Debugging
 

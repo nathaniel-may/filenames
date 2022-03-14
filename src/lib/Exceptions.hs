@@ -14,8 +14,13 @@ data TypeException
     | FormatNotFound
     | ListTypeMismatch Type Type
     | NoValueNamed Name
-    | TypeMismatch Type (Maybe Type)
+    | NoFunctionNamed Name
+    | NotAFunction Name Type
+    | TypeMismatch Type Type
     | TopLevelNotAssignment Type
+    | TypeMismatchFnReturn Name Type (Maybe Type)
+    | TypeMismatchFnParam Name Type Type
+    | TypeMismatchNumFnParams Name Int Int
     deriving (Read, Show, Eq)
 
 data RuntimeException
@@ -36,9 +41,14 @@ instance Display TypeException where
     display FormatNotFound = "FormatNotFound: No value named 'format' found. 'format' is a required value."
     display (ListTypeMismatch expected got) = "ListTypeMismatch: List of type " <> display (ListTag expected) <> " but got " <> display (ListTag got) <> "." 
     display (NoValueNamed (Name name)) = "NoValueNamed: No value named '" <> name <> "'."
-    display (TypeMismatch expected Nothing) = "TypeMismatch: Expected type " <> display expected <> " but got an uninferable type."
-    display (TypeMismatch expected (Just got)) = "TypeMismatch: Expected type " <> display expected <> " but got type " <> display got <> "."
+    display (NoFunctionNamed (Name name)) = "NoFunctionNamed: No value named '" <> name <> "'."
+    display (TypeMismatch expected got) = "TypeMismatch: Expected type " <> display expected <> " but got type " <> display got <> "."
     display (TopLevelNotAssignment got) = "TopLevelNotAssignment: All top-level expressions must be assignments. Found the following types: " <> display got <> "."
+    display (TypeMismatchFnReturn (Name name) expected (Just got)) = "TypeMismatchFnReturn: Expected type " <> display expected <> ", but function '" <> name <> "' returns type " <> display got <> "."
+    display (TypeMismatchFnReturn (Name name) expected Nothing) = "TypeMismatchFnReturn: Expected type " <> display expected <> ", but function '" <> name <> "' does not return the type " <> display expected <> "."
+    display (TypeMismatchFnParam (Name name) expected got) = "TypeMismatchFnParam: The function " <> name <> " expected parameter of type " <> display expected <> ", but got type " <> display got <> "."
+    display (TypeMismatchNumFnParams (Name name) expected got) = "TypeMismatchNumFnParams: Function '" <> name <> "' requires " <> tshow expected <> "parameters. Got " <> tshow got <> "."
+    display (NotAFunction (Name name) got) = "NotAFunction: Expected value " <> name <> " to be a function. Instead it's defined as a " <> display got <> "."
 
 instance Display RuntimeException where
     display Boop100 = "RuntimeException"

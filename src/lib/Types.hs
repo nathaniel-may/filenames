@@ -25,6 +25,8 @@ data ExprT
     | IntT Int
     | BoolT Bool
     | ListT Type [ExprT]
+    | FnDefT Name Type [Type]
+    | FnCallT Name [ExprT]
     deriving (Read, Show, Eq)
 
 data Type
@@ -33,9 +35,15 @@ data Type
     | IntTag
     | BoolTag
     | ListTag Type
+    | FnTag Type [Type]
     deriving (Read, Show, Eq)
 
 type ValueTable = Map Name ExprT
+
+-- TODO
+-- data BuiltIn
+--     = BuiltIn Name ExprT
+--     deriving (Read, Show, Eq)
 
 
 instance Display Type where
@@ -44,6 +52,10 @@ instance Display Type where
     display IntTag = "int"
     display BoolTag = "bool"
     display (ListTag t) = "List[" <> display t <> "]"
+    -- note: fns with no params are just values.
+    display (FnTag ret []) = display ret
+    display (FnTag ret params) = foldr (<>) "" symbols where
+        symbols = interleave (display <$> params) (repeat " -> ") <> [display ret]
 
 {-
 

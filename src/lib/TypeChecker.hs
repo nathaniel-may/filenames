@@ -24,7 +24,7 @@ typecheck_ table (RootU (expr : exprs)) = do
     tablesNExprts <- traverse (typecheck_ table) exprs
     let (tables, exprts) = unzip tablesNExprts
     -- all top-level definitions must be assignments. Should be enforced at parse time so this is here just in case.
-    types <- traverse inferType (exprt : exprts)
+    types <- traverse (inferType table) (exprt : exprts)
     let mismatches = filter (/=UnitTag) types
     _ <- case mismatches of
         []  -> Right ()
@@ -64,27 +64,44 @@ typecheck_ table (IdentifierU name) = do
     pure (table, exprt)
 
 
-checkType :: Type -> ExprT -> Either TypeException ()
-checkType UnitTag UnitT = Right ()
-checkType UnitTag got = Left $ TypeMismatch UnitTag (rightToMaybe $ inferType got)
-checkType StringTag (StringT _) = Right ()
-checkType StringTag got = Left $ TypeMismatch StringTag (rightToMaybe $ inferType got)
-checkType IntTag (IntT _) = Right ()
-checkType IntTag got = Left $ TypeMismatch IntTag (rightToMaybe $ inferType got)
-checkType BoolTag (BoolT _) = Right ()
-checkType BoolTag got = Left $ TypeMismatch BoolTag (rightToMaybe $ inferType got)
-checkType expected@(ListTag t) (ListT t' xs) = 
+checkType :: ValueTable -> Type -> ExprT -> Either TypeException ()
+checkType _ UnitTag UnitT = Right ()
+checkType table UnitTag got = Left . TypeMismatch UnitTag =<< inferType table got
+checkType _ StringTag (StringT _) = Right ()
+checkType table StringTag got = Left . TypeMismatch StringTag =<< inferType table got
+checkType _ IntTag (IntT _) = Right ()
+checkType table IntTag got = Left . TypeMismatch IntTag =<< inferType table got
+checkType _ BoolTag (BoolT _) = Right ()
+checkType table BoolTag got = Left . TypeMismatch BoolTag =<< inferType table got
+checkType table expected@(ListTag t) (ListT t' xs) = 
     if t == t'
-    then Left $ TypeMismatch expected (Just $ ListTag t')
-    else mapM_ (checkType t) xs
-checkType expected@(ListTag _) got = Left $ TypeMismatch expected (rightToMaybe $ inferType got)
+    then Left $ TypeMismatch expected (ListTag t')
+    else mapM_ (checkType table t) xs
+checkType table expected@(ListTag _) got = Left . TypeMismatch expected =<< inferType table got
+checkType table (FnTag _ params) (FnCallT name params') = do
+    let lparams = length params
+    let lparams' = length params'
+    if' (lparams /= lparams') (Left $ TypeMismatchNumFnParams name lparams lparams') (Right ())
+    inferred <- traverse (inferType table)  params'
+    let mismatches = filter (uncurry (/=)) (params `zip` inferred)
+    case mismatches of
+        [] -> Right ()
+        ((expected, got) : _) -> Left $ TypeMismatchFnParam name expected got
+checkType table FnTag{} got = Left . TypeMismatch BoolTag =<< inferType table got
 
-inferType' :: (a, ExprT) -> Either TypeException Type
-inferType' = inferType . snd
+-- TODO remove this.
+inferType' :: (ValueTable, ExprT) -> Either TypeException Type
+inferType' = uncurry inferType
 
-inferType :: ExprT -> Either TypeException Type
-inferType UnitT = Right UnitTag
-inferType (StringT _) = Right StringTag
-inferType (IntT _) = Right IntTag
-inferType (BoolT _) = Right BoolTag
-inferType (ListT tag xs) = mapM_ (checkType tag) xs >> pure (ListTag tag)
+inferType :: ValueTable -> ExprT -> Either TypeException Type
+inferType _ UnitT = Right UnitTag
+inferType _ (StringT _) = Right StringTag
+inferType _ (IntT _) = Right IntTag
+inferType _ (BoolT _) = Right BoolTag
+inferType table (ListT tag xs) = mapM_ (checkType table tag) xs >> pure (ListTag tag)
+inferType table (FnCallT name _) = do
+    exprt <- maybeToRight (NoFunctionNamed name) (M.lookup name table)
+    case exprt of
+        (FnDefT _ ret params) -> Right $ FnTag ret params
+        got -> Left . NotAFunction name =<< inferType table got
+inferType _ FnDefT{} = Right UnitTag
