@@ -22,11 +22,9 @@ data RuntimeException
     | Boop200
     deriving (Read, Show, Eq)
 
--- TODO remove runtime exceptions.
 data CompilationException
     = ParseErr ParseException
     | TypeErr TypeException
-    | RuntimeErr RuntimeException
 
 instance Display ParseException where
     display (ParseException bundle) = T.pack $ errorBundlePretty bundle
@@ -45,4 +43,3 @@ instance Display RuntimeException where
 instance Display CompilationException where
     display (ParseErr e)    = display e
     display (TypeErr e)     = display e
-    display (RuntimeErr e)  = display e
