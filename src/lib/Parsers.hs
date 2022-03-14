@@ -14,7 +14,7 @@ import           Types                      (ExprU(..))
 type Parser = Parsec Void Text
 
 parse :: Text -> Either ParseException ExprU
-parse input = mapLeft (const Boop10) (Mega.parse expr "" input)
+parse input = mapLeft (const Boop10) $ RootU <$> Mega.parse (some expr) "" input
 
 sc :: Parser ()
 sc = L.space

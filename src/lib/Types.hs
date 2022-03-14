@@ -5,26 +5,37 @@ module Types where
 import CustomPrelude -- import all
 
 
+newtype Name
+    = Name Text
+    deriving (Read, Show, Eq, Ord)
+
 data ExprU
-    = StringU Text
+    = RootU [ExprU]
+    | StringU Text
     | IntU Int -- TODO nat?
     | BoolU Bool
     | ListU [ExprU]
+    | AssignmentU Name ExprU
+    | IdentifierU Name
     deriving (Read, Show, Eq)
 
 data ExprT
-    = StringT Text
+    = UnitT
+    | StringT Text
     | IntT Int
     | BoolT Bool
     | ListT Type [ExprT]
     deriving (Read, Show, Eq)
 
 data Type
-    = StringTag
+    = UnitTag
+    | StringTag
     | IntTag
     | BoolTag
     | ListTag Type
     deriving (Read, Show, Eq)
+
+type ValueTable = Map Name ExprT
 
 {-
 
