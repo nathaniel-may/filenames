@@ -1,5 +1,3 @@
-{-# LANGUAGE LambdaCase #-}
-
 module Parsers where
 
 import           CustomPrelude              hiding (some)
