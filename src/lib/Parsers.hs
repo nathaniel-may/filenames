@@ -14,7 +14,7 @@ import           Types                      (ExprU(..), Name(..))
 type Parser = Parsec Void Text
 
 parse :: Text -> Either ParseException ExprU
-parse input = mapLeft ParseException $ RootU <$> Mega.parse (some topExpr) "" input
+parse input = mapLeft ParseException $ RootU <$> Mega.parse (some expr) "" input
 
 sc :: Parser ()
 sc = L.space
@@ -56,7 +56,7 @@ identifier :: Parser ExprU
 identifier = IdentifierU . Name <$> identifier'
 
 assignment :: Parser ExprU
-assignment = AssignmentU . Name <$> identifier' <* sc <* symbol ":=" <*> expr
+assignment = AssignmentU . Name <$> lexeme identifier' <* symbol ":=" <*> lexeme expr
 
 expr :: Parser ExprU
 expr = choice
@@ -65,8 +65,6 @@ expr = choice
   , intLiteral
   , boolLiteral
   , list
+  , assignment
   , identifier
   ]
-
-topExpr :: Parser ExprU
-topExpr = sc *> assignment <* sc
