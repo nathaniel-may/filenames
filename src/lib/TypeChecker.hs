@@ -1,4 +1,4 @@
-{-# LANGUAGE GADTs, LambdaCase #-}
+{-# LANGUAGE GADTs #-}
 
 module TypeChecker where
 
