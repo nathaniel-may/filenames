@@ -9,11 +9,7 @@ ci:
 
 .PHONY: build
 build:
-	cabal new-test unit --ghc-options=-Wwarn
-
-.PHONY: build
-build-tests:
-	cabal new-test unit --enable-tests --ghc-options=-Wwarn
+	cabal new-build --enable-tests --ghc-options=-Wwarn
 
 # runs unit test making sure warnings don't block test runs
 # not suitable for CI which should make warnings block test runs
