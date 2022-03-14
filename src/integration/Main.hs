@@ -43,8 +43,6 @@ runProgram (SourceFile sourcePath source) = do
             -- makes the executable
             postCompileIO
             let targetPath = dropExtension sourcePath
-            -- executable permissions (TODO is this necessary?)
-            callCommand $ "chmod +x " <> targetPath
             -- run the resulting program
             let stdin' = ""
             (_, stdout', stderr') <- readProcessWithExitCode targetPath [] stdin'
