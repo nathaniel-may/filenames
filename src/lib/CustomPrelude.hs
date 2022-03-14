@@ -102,6 +102,7 @@ import Data.List as Export (
   , replicate
   , take
   , takeWhile
+  , unzip
   , zip
   , zipWith)
 import Data.List.NonEmpty as Export (

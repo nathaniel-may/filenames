@@ -19,16 +19,20 @@ typecheck_ :: ValueTable -> ExprU -> Either TypeException (ValueTable, ExprT)
 typecheck_ _ (RootU []) = Left EmptySourceFile
 
 -- program root is defined by assignment to value "format"
-typecheck_ table (RootU assignments@(expr : exprs)) = do
+typecheck_ table (RootU (expr : exprs)) = do
+    (table1, exprt) <- typecheck_ table expr
+    tablesNExprts <- traverse (typecheck_ table) exprs
+    let (tables, exprts) = unzip tablesNExprts
     -- all top-level definitions must be assignments. Should be enforced at parse time so this is here just in case.
-    _ <- if any (\case { (AssignmentU _ _) -> False; _ -> True }) assignments
-         then Left $ TopLevelNotAssignment UnknownTag
-         else Right ()
-    (table1, _) <- typecheck_ table expr
-    tables <- traverse (fmap fst . typecheck_ table) exprs
+    types <- traverse inferType (exprt : exprts)
+    let mismatches = filter (/=UnitTag) types
+    _ <- case mismatches of
+        []  -> Right ()
+        -- only reporting first mismatch if there are several. could change the exception to show them all.
+        (got : _) -> Left $ TopLevelNotAssignment got
     let finalTable = foldr M.union table1 tables
-    exprt <- maybeToRight FormatNotFound (M.lookup (Name "format") finalTable)
-    pure (finalTable, exprt)
+    finalExprt <- maybeToRight FormatNotFound (M.lookup (Name "format") finalTable)
+    pure (finalTable, finalExprt)
 
 typecheck_ table (StringU s) =
     Right (table, StringT s)
