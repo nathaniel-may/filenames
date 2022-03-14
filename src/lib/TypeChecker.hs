@@ -1,4 +1,4 @@
-{-# LANGUAGE GADTs #-}
+{-# LANGUAGE GADTs, LambdaCase #-}
 
 module TypeChecker where
 
@@ -18,9 +18,12 @@ typecheck_ :: ValueTable -> ExprU -> Either TypeException (ValueTable, ExprT)
 -- nothing in source file
 typecheck_ _ (RootU []) = Left EmptySourceFile
 
--- top-level program is defined by assignment to value "format"
--- TODO this is where I would catch top-level unassigned values. the returned ExprT wouldn't be a UnitT.
-typecheck_ table (RootU (expr : exprs)) = do
+-- program root is defined by assignment to value "format"
+typecheck_ table (RootU assignments@(expr : exprs)) = do
+    -- all top-level definitions must be assignments. Should be enforced at parse time so this is here just in case.
+    _ <- if any (\case { (AssignmentU _ _) -> False; _ -> True }) assignments
+         then Left $ TopLevelNotAssignment UnknownTag
+         else Right ()
     (table1, _) <- typecheck_ table expr
     tables <- traverse (fmap fst . typecheck_ table) exprs
     let finalTable = foldr M.union table1 tables

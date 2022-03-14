@@ -15,6 +15,7 @@ data TypeException
     | ListTypeMismatch Type
     | NoValueNamed Name
     | TypeMismatch Type Type
+    | TopLevelNotAssignment Type
     deriving (Read, Show, Eq)
 
 data RuntimeException
@@ -35,6 +36,7 @@ instance Display TypeException where
     display (ListTypeMismatch expected) = "ListTypeMismatch: List of type " <> display (ListTag expected) <> " had a value of a different type." 
     display (NoValueNamed (Name name)) = "NoValueNamed: No value named '" <> name <> "'."
     display (TypeMismatch expected got) = "TypeMismatch: Expected type " <> display expected <> " but got type " <> display got <> "."
+    display (TopLevelNotAssignment got) = "TopLevelNotAssignment: All top-level expressions must be assignments. Found " <> display got <> "."
 
 instance Display RuntimeException where
     display Boop100 = "RuntimeException"
