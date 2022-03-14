@@ -49,14 +49,14 @@ boolLiteral = (\x -> if x == "true" then BoolU True else BoolU False) <$> (symbo
 identifierChar :: Parser Char
 identifierChar = satisfy (\x -> isDigit x || isAlpha x || x == '\''|| x == '_')
 
-identifier :: Parser ExprU
-identifier = IdentifierU . Name .T.pack <$> ((:) <$> lowerChar <*> many identifierChar)
+identifier' :: Parser Text
+identifier' = T.pack <$> ((:) <$> lowerChar <*> many identifierChar)
 
--- TODO handle whitespace better here?
+identifier :: Parser ExprU
+identifier = IdentifierU . Name <$> identifier'
+
 assignment :: Parser ExprU
-assignment = fromIdentifier <$> identifier <* sc <* symbol ":=" <*> expr where
-    fromIdentifier (IdentifierU name) = AssignmentU name
-    fromIdentifier _ = AssignmentU (Name "internal_error") -- TODO this is a hack. fix it.
+assignment = AssignmentU . Name <$> identifier' <* sc <* symbol ":=" <*> expr
 
 expr :: Parser ExprU
 expr = choice
