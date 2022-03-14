@@ -11,7 +11,7 @@ import           Types         -- import all
 
 typecheck :: ExprU -> Either TypeException ExprT
 typecheck x = do
-    (_, exprt) <- typecheck_ M.empty x
+    (_, exprt) <- typecheck_ builtins x
     pure exprt
 
 typecheck_ :: ValueTable -> ExprU -> Either TypeException (ValueTable, ExprT)
@@ -117,3 +117,8 @@ inferType _ (BoolT _) = Right BoolTag
 inferType table (ListT tag xs) = mapM_ (checkType table tag) xs >> pure (ListTag tag)
 inferType table (FnCallT _ ret params) = Right . FnTag ret =<< traverse (inferType table) params
 inferType _ FnDefT{} = Right UnitTag
+
+builtins :: ValueTable
+builtins = M.fromList [
+    (Name "<",  FnDefT (Name "<") BoolTag [IntTag, IntTag])
+  ]
