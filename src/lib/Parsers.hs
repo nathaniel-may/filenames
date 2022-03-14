@@ -1,13 +1,13 @@
 module Parsers where
 
-import           CustomPrelude              hiding (many)
+import           CustomPrelude              hiding (some)
 import           Data.Text                  as T
-import           Exceptions                 (ParseException(..))
-import           Prelude                    (read)      
+import           Exceptions                 (ParseException(..))      
 import qualified Text.Megaparsec            as Mega
 import           Text.Megaparsec            -- import all
 import           Text.Megaparsec.Char       (char, digitChar, space1)
 import qualified Text.Megaparsec.Char.Lexer as L
+import           Text.Read                  (read)
 import           Types                      (ExprU(..))
 
 
@@ -41,7 +41,7 @@ list :: Parser ExprU
 list = ListU <$> brackets (sepBy expr (symbol ","))
 
 intLiteral :: Parser ExprU
-intLiteral = IntU . read <$> many digitChar
+intLiteral = IntU . read <$> some digitChar
 
 expr :: Parser ExprU
 expr = choice
