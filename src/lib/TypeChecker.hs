@@ -121,4 +121,8 @@ inferType _ FnDefT{} = Right UnitTag
 builtins :: ValueTable
 builtins = M.fromList [
     (Name "<",  FnDefT (Name "<") BoolTag [IntTag, IntTag])
+  , (Name ">",  FnDefT (Name ">") BoolTag [IntTag, IntTag])
+  , (Name "==",  FnDefT (Name "==") BoolTag [IntTag, IntTag])
+  , (Name "<=",  FnDefT (Name "<=") BoolTag [IntTag, IntTag])
+  , (Name ">=",  FnDefT (Name ">=") BoolTag [IntTag, IntTag])
   ]
