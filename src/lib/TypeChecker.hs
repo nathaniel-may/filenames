@@ -64,6 +64,20 @@ typecheck_ table (IdentifierU name) = do
     exprt <- maybeToRight (NoValueNamed name) (M.lookup name table)
     pure (table, exprt)
 
+typecheck_ table (FnCallU name params) = do
+    exprt <- maybeToRight (NoValueNamed name) (M.lookup name table)
+    case exprt of
+        (FnDefT _ ret' params') -> do
+            -- throws away the tables from param typechecking
+            -- no additional definitions should be added there
+            (_, checked) <- unzip <$> traverse (typecheck_ table) params
+            inferred <- traverse (inferType table) checked
+            let mismatches = filter (uncurry (/=)) (params' `zip` inferred)
+            case mismatches of
+                [] -> Right (table, FnCallT name ret' checked)
+                ((expected, got) : _) -> Left $ TypeMismatchFnParam name expected got
+        got -> Left . NotAFunction name =<< inferType table got
+
 
 checkType :: ValueTable -> Type -> ExprT -> Either TypeException ()
 checkType _ UnitTag UnitT = Right ()

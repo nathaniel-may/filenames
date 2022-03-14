@@ -17,6 +17,7 @@ data ExprU
     | ListU [ExprU]
     | AssignmentU Name ExprU
     | IdentifierU Name
+    | FnCallU Name [ExprU]
     deriving (Read, Show, Eq)
 
 data ExprT
