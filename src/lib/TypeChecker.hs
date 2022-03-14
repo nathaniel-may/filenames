@@ -1,4 +1,4 @@
-{-# LANGUAGE GADTs, TupleSections #-}
+{-# LANGUAGE GADTs #-}
 
 module TypeChecker where
 
@@ -16,7 +16,7 @@ typecheck x = do
 
 typecheck_ :: ValueTable -> ExprU -> Either TypeException (ValueTable, ExprT)
 -- nothing in source file
-typecheck_ _ (RootU []) = Left Boop1
+typecheck_ _ (RootU []) = Left EmptySourceFile
 
 -- top-level program is defined by assignment to value "format"
 -- TODO this is where I would catch top-level unassigned values. the returned ExprT wouldn't be a UnitT.
@@ -24,7 +24,8 @@ typecheck_ table (RootU (expr : exprs)) = do
     (table1, _) <- typecheck_ table expr
     tables <- traverse (fmap fst . typecheck_ table) exprs
     let finalTable = foldr M.union table1 tables
-    (finalTable,) <$> maybeToRight Boop1 (M.lookup (Name "format") finalTable)
+    exprt <- maybeToRight FormatNotFound (M.lookup (Name "format") finalTable)
+    pure (finalTable, exprt)
 
 typecheck_ table (StringU s) =
     Right (table, StringT s)
@@ -44,31 +45,32 @@ typecheck_ table (ListU elems@(x : _)) = do
     inferred <- traverse inferType' checked
     if all (== expectedType) inferred
     then Right (table, ListT expectedType $ snd <$> checked)
-    else Left Boop2
+    else Left (ListTypeMismatch expectedType)
 
 typecheck_ table (AssignmentU name v) = do
     (table2, exprt) <- typecheck_ table v
     pure (M.insert name exprt table2, UnitT)
 
 typecheck_ table (IdentifierU name) = do
-    exprt <- maybeToRight Boop1 (M.lookup name table)
+    exprt <- maybeToRight (NoValueNamed name) (M.lookup name table)
     pure (table, exprt)
 
 
 checkType :: Type -> ExprT -> Either TypeException ()
+checkType UnknownTag got = Left $ TypeMismatch UnknownTag (fromRight UnknownTag $ inferType got)
 checkType UnitTag UnitT = Right ()
-checkType UnitTag _ = Left Boop1
+checkType UnitTag got = Left $ TypeMismatch UnitTag (fromRight UnknownTag $ inferType got)
 checkType StringTag (StringT _) = Right ()
-checkType StringTag _ = Left Boop1
+checkType StringTag got = Left $ TypeMismatch StringTag (fromRight UnknownTag $ inferType got)
 checkType IntTag (IntT _) = Right ()
-checkType IntTag _ = Left Boop1
+checkType IntTag got = Left $ TypeMismatch IntTag (fromRight UnknownTag $ inferType got)
 checkType BoolTag (BoolT _) = Right ()
-checkType BoolTag _ = Left Boop1
-checkType (ListTag t) (ListT t' xs) = 
+checkType BoolTag got = Left $ TypeMismatch BoolTag (fromRight UnknownTag $ inferType got)
+checkType expected@(ListTag t) (ListT t' xs) = 
     if t == t'
-    then Left Boop2
+    then Left $ TypeMismatch expected (ListTag t')
     else mapM_ (checkType t) xs
-checkType (ListTag _) _ = Left Boop1
+checkType expected@(ListTag _) got = Left $ TypeMismatch expected (fromRight UnknownTag $ inferType got)
 
 inferType' :: (a, ExprT) -> Either TypeException Type
 inferType' = inferType . snd

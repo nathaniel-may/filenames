@@ -56,12 +56,12 @@ runProgram (SourceFile sourcePath source) = do
 
 test1 :: FilePath -> IO Test
 test1 sourcePath = do
-    e <- runProgram (SourceFile sourcePath "[\"a\", \"b\", \"c\"]")
+    e <- runProgram (SourceFile sourcePath "format := [\"a\", \"b\", \"c\"]")
     output <- case e of
         (Left err) -> pure (display err)
         (Right stdout) -> stdout
     pure . TestCase $ assertEqual 
-        "source for printing a simple int list works" 
+        "source for printing a simple list works" 
         "[\"a\",\"b\",\"c\"]\n"
         output
 

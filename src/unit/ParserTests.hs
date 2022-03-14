@@ -1,15 +1,16 @@
 module ParserTests (tests) where
 
-import CustomPrelude -- import all
-import Test.HUnit    -- import all
-import Types         -- import all
-import Parsers       (parse)
+import           CustomPrelude   -- import all
+import qualified Text.Megaparsec as Mega
+import           Test.HUnit      -- import all
+import           Types           -- import all
+import           Parsers         (assignment, parse)
 
 
 test1 :: Test
 test1 = TestCase $ assertEqual 
   "list of multiple values parses"
-  (Right $ ListU [
+  (Right $ RootU [AssignmentU (Name "bad_list") (ListU [
         IntU 1
       , BoolU True
       , ListU [
@@ -17,8 +18,30 @@ test1 = TestCase $ assertEqual
           , BoolU False
       ]
       , IntU 3
-  ])
-  (parse "[1, true, [2,  false], 3  ]  ")
+  ])])
+  (parse "bad_list := [1, true, [2,    false], 3]  ")
+
+test2 :: Test
+test2 = TestCase $ assertEqual 
+  "top-level format parses as an assignment"
+  (Right . RootU $ [AssignmentU (Name "format") (ListU [
+        IntU 1
+      , IntU 2
+      , IntU 3
+  ])])
+  (parse "format := [1, 2, 3]")
+
+test3 :: Test
+test3 = TestCase $ assertEqual 
+  "assignment parser works properly"
+  (Right $ AssignmentU (Name "name") (BoolU True))
+  (Mega.parse assignment "" "name := true")
+
+test4 :: Test
+test4 = TestCase $ assertEqual 
+  "assignment parser works properly with format name"
+  (Right $ AssignmentU (Name "format") (BoolU True))
+  (Mega.parse assignment "" "format := true")
 
 tests :: [Test]
-tests = [test1]
+tests = [test1, test2, test3, test4]

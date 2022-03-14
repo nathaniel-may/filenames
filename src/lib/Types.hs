@@ -33,9 +33,19 @@ data Type
     | IntTag
     | BoolTag
     | ListTag Type
+    | UnknownTag -- TODO does this belong here?
     deriving (Read, Show, Eq)
 
 type ValueTable = Map Name ExprT
+
+
+instance Display Type where
+    display UnitTag = "unit"
+    display StringTag = "string"
+    display IntTag = "int"
+    display BoolTag = "bool"
+    display (ListTag t) = "List[" <> display t <> "]"
+    display UnknownTag = "unknown"
 
 {-
 

@@ -1,12 +1,13 @@
 module Main where
 
 import           CustomPrelude -- import all
+import qualified ParserTests
 import qualified RuntimeTests
 import qualified TypeCheckerTests
 import           Test.HUnit    -- import all
 
 allTests :: [Test]
-allTests = TypeCheckerTests.tests <> RuntimeTests.tests
+allTests = TypeCheckerTests.tests <> RuntimeTests.tests <> ParserTests.tests
 
 main :: IO ()
 main = do

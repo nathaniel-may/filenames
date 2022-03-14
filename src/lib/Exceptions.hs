@@ -1,15 +1,20 @@
 module Exceptions where
 
-import CustomPrelude -- import all
+import           CustomPrelude         -- import all
+import qualified Data.Text             as T
+import           Text.Megaparsec.Error (errorBundlePretty, ParseErrorBundle)
+import           Types                 (Name(..), Type(..))
 
-data ParseException
-    = Boop10
-    | Boop20
-    deriving (Read, Show, Eq)
+newtype ParseException
+    = ParseException (ParseErrorBundle Text Void)
+    deriving (Show, Eq)
 
 data TypeException
-    = Boop1
-    | Boop2
+    = EmptySourceFile
+    | FormatNotFound
+    | ListTypeMismatch Type
+    | NoValueNamed Name
+    | TypeMismatch Type Type
     deriving (Read, Show, Eq)
 
 data RuntimeException
@@ -24,12 +29,14 @@ data CompilationException
     | RuntimeErr RuntimeException
 
 instance Display ParseException where
-    display Boop10 = "ParseException"
-    display Boop20 = "ParseException"
+    display (ParseException bundle) = T.pack $ errorBundlePretty bundle
 
 instance Display TypeException where
-    display Boop1 = "TypeException"
-    display Boop2 = "TypeException"
+    display EmptySourceFile = "EmptySourceFile: Source file cannot be empty"
+    display FormatNotFound = "FormatNotFound: No value named 'format' found. 'format' is a required value."
+    display (ListTypeMismatch expected) = "ListTypeMismatch: List of type " <> display (ListTag expected) <> " had a value of a different type." 
+    display (NoValueNamed (Name name)) = "NoValueNamed: No value named '" <> name <> "'."
+    display (TypeMismatch expected got) = "TypeMismatch: Expected type " <> display expected <> " but got type " <> display got <> "."
 
 instance Display RuntimeException where
     display Boop100 = "RuntimeException"
