@@ -48,6 +48,5 @@ expr = choice
   [ parens expr
   , stringLiteral
   , intLiteral
---   , boolLiteral -- TODO make this
   , list
   ]
