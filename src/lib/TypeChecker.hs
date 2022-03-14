@@ -57,6 +57,7 @@ typecheck_ table (ListU elems@(x : _)) = do
 
 typecheck_ table (AssignmentU name v) = do
     (table2, exprt) <- typecheck_ table v
+    -- TODO this overwrites assignments. should check if it exists first
     pure (M.insert name exprt table2, UnitT)
 
 typecheck_ table (IdentifierU name) = do
@@ -78,11 +79,12 @@ checkType table expected@(ListTag t) (ListT t' xs) =
     then Left $ TypeMismatch expected (ListTag t')
     else mapM_ (checkType table t) xs
 checkType table expected@(ListTag _) got = Left . TypeMismatch expected =<< inferType table got
-checkType table (FnTag _ params) (FnCallT name params') = do
+checkType table (FnTag ret params) (FnCallT name ret' params') = do
+    if ret /= ret' then Left $ TypeMismatchFnReturn name ret ret' else Right ()
     let lparams = length params
     let lparams' = length params'
     if' (lparams /= lparams') (Left $ TypeMismatchNumFnParams name lparams lparams') (Right ())
-    inferred <- traverse (inferType table)  params'
+    inferred <- traverse (inferType table) params'
     let mismatches = filter (uncurry (/=)) (params `zip` inferred)
     case mismatches of
         [] -> Right ()
@@ -99,9 +101,5 @@ inferType _ (StringT _) = Right StringTag
 inferType _ (IntT _) = Right IntTag
 inferType _ (BoolT _) = Right BoolTag
 inferType table (ListT tag xs) = mapM_ (checkType table tag) xs >> pure (ListTag tag)
-inferType table (FnCallT name _) = do
-    exprt <- maybeToRight (NoFunctionNamed name) (M.lookup name table)
-    case exprt of
-        (FnDefT _ ret params) -> Right $ FnTag ret params
-        got -> Left . NotAFunction name =<< inferType table got
+inferType table (FnCallT _ ret params) = Right . FnTag ret =<< traverse (inferType table) params
 inferType _ FnDefT{} = Right UnitTag

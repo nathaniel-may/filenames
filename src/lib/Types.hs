@@ -26,7 +26,7 @@ data ExprT
     | BoolT Bool
     | ListT Type [ExprT]
     | FnDefT Name Type [Type]
-    | FnCallT Name [ExprT]
+    | FnCallT Name Type [ExprT]
     deriving (Read, Show, Eq)
 
 data Type
