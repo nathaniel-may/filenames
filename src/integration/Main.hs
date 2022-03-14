@@ -21,8 +21,6 @@ main = do
         else
             exitWith (ExitFailure 1)
 
--- TODO split test cases out into their own files once there is enough of them
-
 data SourceFile = SourceFile FilePath Text
 
 targetDir :: Text
@@ -65,8 +63,10 @@ test1 sourcePath = do
         "[\"a\",\"b\",\"c\"]\n"
         output
 
+-- top-level value for all tests
 testsIO :: IO [Test]
 testsIO = do 
     callCommand $ T.unpack $ "mkdir -p " <> targetDir
+    -- add new tests here vv
     let allTests = [test1]
     zipWithM ($) allTests uniqueFilepaths
