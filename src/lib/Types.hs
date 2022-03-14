@@ -8,6 +8,7 @@ import CustomPrelude -- import all
 data ExprU
     = StringU Text
     | IntU Int -- TODO nat?
+    | BoolU Bool
     | ListU [ExprU]
     deriving (Read, Show, Eq)
 

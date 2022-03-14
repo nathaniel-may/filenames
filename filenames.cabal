@@ -60,7 +60,8 @@ test-suite unit
   type:                exitcode-stdio-1.0
   main-is:             Main.hs
   hs-source-dirs:      src/unit
-  other-modules:       RuntimeTests
+  other-modules:       ParserTests
+                      ,RuntimeTests
                       ,TypeCheckerTests
   build-depends:       base ==4.13.*
                       ,containers ==0.6.*

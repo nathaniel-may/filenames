@@ -1,3 +1,5 @@
+{-# LANGUAGE LambdaCase #-}
+
 module Parsers where
 
 import           CustomPrelude              hiding (some)
@@ -43,10 +45,14 @@ list = ListU <$> brackets (sepBy expr (symbol ","))
 intLiteral :: Parser ExprU
 intLiteral = IntU . read <$> some digitChar
 
+boolLiteral :: Parser ExprU
+boolLiteral = (\x -> if x == "true" then BoolU True else BoolU False) <$> (symbol "true" <|> symbol "false")
+
 expr :: Parser ExprU
 expr = choice
   [ parens expr
   , stringLiteral
   , intLiteral
+  , boolLiteral
   , list
   ]

@@ -9,6 +9,7 @@ import Types         -- import all
 typecheck :: ExprU -> Either TypeException ExprT
 typecheck (StringU s) = Right $ StringT s
 typecheck (IntU i) = Right $ IntT i
+typecheck (BoolU b) = Right $ BoolT b
 typecheck (ListU []) = Right $ ListT StringTag []
 typecheck (ListU elems@(x : _)) = do
     expectedType <- inferType =<< typecheck x

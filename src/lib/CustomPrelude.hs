@@ -83,6 +83,7 @@ import Data.Functor          as Export (
     Functor(..)
   , ($>)
   , (<$>)
+  , (<&>)
   , void)
 
 -- Data structures

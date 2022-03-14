@@ -5,6 +5,7 @@ import CustomPrelude -- import all
 data ParseException
     = Boop10
     | Boop20
+    deriving (Read, Show, Eq)
 
 data TypeException
     = Boop1
