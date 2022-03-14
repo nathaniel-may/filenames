@@ -50,9 +50,10 @@ typecheck_ table (ListU elems@(x : _)) = do
     expectedType <- inferType' =<< typecheck_ table x
     checked <- traverse (typecheck_ table) elems
     inferred <- traverse inferType' checked
-    if all (== expectedType) inferred
-    then Right (table, ListT expectedType $ snd <$> checked)
-    else Left (ListTypeMismatch expectedType)
+    let mismatches = filter (/=expectedType) inferred
+    case mismatches of
+        [] -> Right (table, ListT expectedType $ snd <$> checked)
+        (got : _) -> Left (ListTypeMismatch expectedType got)
 
 typecheck_ table (AssignmentU name v) = do
     (table2, exprt) <- typecheck_ table v

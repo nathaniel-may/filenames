@@ -12,8 +12,7 @@ newtype ParseException
 data TypeException
     = EmptySourceFile
     | FormatNotFound
-    -- TODO add got to exception
-    | ListTypeMismatch Type
+    | ListTypeMismatch Type Type
     | NoValueNamed Name
     | TypeMismatch Type Type
     | TopLevelNotAssignment Type
@@ -35,7 +34,7 @@ instance Display ParseException where
 instance Display TypeException where
     display EmptySourceFile = "EmptySourceFile: Source file cannot be empty"
     display FormatNotFound = "FormatNotFound: No value named 'format' found. 'format' is a required value."
-    display (ListTypeMismatch expected) = "ListTypeMismatch: List of type " <> display (ListTag expected) <> " had a value of a different type." 
+    display (ListTypeMismatch expected got) = "ListTypeMismatch: List of type " <> display (ListTag expected) <> " but got " <> display (ListTag got) <> "." 
     display (NoValueNamed (Name name)) = "NoValueNamed: No value named '" <> name <> "'."
     display (TypeMismatch expected got) = "TypeMismatch: Expected type " <> display expected <> " but got type " <> display got <> "."
     display (TopLevelNotAssignment got) = "TopLevelNotAssignment: All top-level expressions must be assignments. Found the following types: " <> display got <> "."
