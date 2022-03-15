@@ -55,7 +55,9 @@ This is a bad format because although `ABC` looks like it's intended to be a val
 
 ## Development
 
-run unit tests with `make test`
+Compiled with ghc 8.8. You can install ghc from [ghcup](https://www.haskell.org/ghcup/).
+
+run tests with `make test`
 
 ## Future work
 - name the tool better
