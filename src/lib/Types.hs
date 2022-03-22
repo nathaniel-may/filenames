@@ -17,7 +17,9 @@ data ExprU
     | ListU [ExprU]
     | AssignmentU Name ExprU
     | IdentifierU Name
+    | OpIdentifierU Name
     | FnCallU Name [ExprU]
+    | LambdaU [ExprU] [ExprU]
     deriving (Read, Show, Eq)
 
 data ExprT
@@ -26,7 +28,7 @@ data ExprT
     | IntT Int
     | BoolT Bool
     | ListT Type [ExprT]
-    | FnDefT Name Type [Type]
+    | FnT Type [Type] [ExprT]
     | FnCallT Name Type [ExprT]
     deriving (Read, Show, Eq)
 

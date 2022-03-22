@@ -67,7 +67,7 @@ typecheck_ table (IdentifierU name) = do
 typecheck_ table (FnCallU name params) = do
     exprt <- maybeToRight (NoValueNamed name) (M.lookup name table)
     case exprt of
-        (FnDefT _ ret' params') -> do
+        (FnT ret' params' _) -> do
             -- throws away the tables from param typechecking
             -- no additional definitions should be added there
             (_, checked) <- unzip <$> traverse (typecheck_ table) params
@@ -77,6 +77,14 @@ typecheck_ table (FnCallU name params) = do
                 [] -> Right (table, FnCallT name ret' checked)
                 ((expected, got) : _) -> Left $ TypeMismatchFnParam name expected got
         got -> Left . NotAFunction name =<< inferType table got
+
+typecheck_ table (LambdaU params [x, OpIdentifierU name, y]) = do
+    op <- maybeToRight (NoFunctionNamed name) (M.lookup name table)
+    exprt <- case op of
+        FnT ret [p0, p1] _ -> Right $ FnT ret [p0, p1] [] -- todo: exprts for codegen?? -- order of params?
+        FnT _ params _ -> Left $ TypeMismatchNumFnParams name 2 (length params)
+        exprt -> Left . NotAFunction name =<< inferType table exprt
+    pure (table, exprt)
 
 
 checkType :: ValueTable -> Type -> ExprT -> Either TypeException ()
@@ -116,13 +124,14 @@ inferType _ (IntT _) = Right IntTag
 inferType _ (BoolT _) = Right BoolTag
 inferType table (ListT tag xs) = mapM_ (checkType table tag) xs >> pure (ListTag tag)
 inferType table (FnCallT _ ret params) = Right . FnTag ret =<< traverse (inferType table) params
-inferType _ FnDefT{} = Right UnitTag
+inferType _ (FnT ret _ _) = Right ret
 
+-- TODO fill in values that will be used as input to codegen
 builtins :: ValueTable
 builtins = M.fromList [
-    (Name "<",  FnDefT (Name "<") BoolTag [IntTag, IntTag])
-  , (Name ">",  FnDefT (Name ">") BoolTag [IntTag, IntTag])
-  , (Name "==",  FnDefT (Name "==") BoolTag [IntTag, IntTag])
-  , (Name "<=",  FnDefT (Name "<=") BoolTag [IntTag, IntTag])
-  , (Name ">=",  FnDefT (Name ">=") BoolTag [IntTag, IntTag])
+    (Name "<",   FnT BoolTag [IntTag, IntTag] [])
+  , (Name ">",   FnT BoolTag [IntTag, IntTag] [])
+  , (Name "==",  FnT BoolTag [IntTag, IntTag] [])
+  , (Name "<=",  FnT BoolTag [IntTag, IntTag] [])
+  , (Name ">=",  FnT BoolTag [IntTag, IntTag] [])
   ]

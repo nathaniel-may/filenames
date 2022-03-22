@@ -14,7 +14,7 @@ import           Types                      (ExprU(..), Name(..))
 type Parser = Parsec Void Text
 
 parse :: Text -> Either ParseException ExprU
-parse input = mapLeft ParseException $ RootU <$> Mega.parse (some expr) "" input
+parse input = mapLeft ParseException $ RootU <$> Mega.parse (some assignment) "" input
 
 sc :: Parser ()
 sc = L.space
@@ -46,6 +46,15 @@ intLiteral = IntU . read <$> some digitChar
 boolLiteral :: Parser ExprU
 boolLiteral = (\x -> if x == "true" then BoolU True else BoolU False) <$> (symbol "true" <|> symbol "false")
 
+opIdentifierChar :: Parser Char
+opIdentifierChar = satisfy (`elem` ['!', '#', '$', '%', '&', '*', '+', '.', '/', '<', '=', '>', '?', '@', '\\', '|', '^', '-', '~'])
+
+opIdentifier' :: Parser Text
+opIdentifier' = T.pack <$> some opIdentifierChar
+
+opIdentifier :: Parser ExprU
+opIdentifier = OpIdentifierU . Name <$> opIdentifier'
+
 identifierChar :: Parser Char
 identifierChar = satisfy (\x -> isDigit x || isAlpha x || x == '\''|| x == '_')
 
@@ -53,18 +62,24 @@ identifier' :: Parser Text
 identifier' = T.pack <$> ((:) <$> lowerChar <*> many identifierChar)
 
 identifier :: Parser ExprU
-identifier = IdentifierU . Name <$> identifier'
+identifier = IdentifierU . Name <$> identifier' <* notFollowedBy (symbol ":=")
 
 assignment :: Parser ExprU
 assignment = AssignmentU . Name <$> lexeme identifier' <* symbol ":=" <*> lexeme expr
 
+literal :: Parser ExprU
+literal = boolLiteral <|> intLiteral <|> stringLiteral
+
+lambda :: Parser ExprU
+lambda = parens $ LambdaU <$> paramList <*> some (lexeme expr) where
+  paramList = between (symbol "\\") (symbol "=>") (some $ lexeme identifier)
+
 expr :: Parser ExprU
 expr = choice
   [ parens expr
-  , stringLiteral
-  , intLiteral
-  , boolLiteral
+  , literal
   , list
-  , assignment
+  , lambda
+  , opIdentifier
   , identifier
   ]
