@@ -50,5 +50,24 @@ test5 = TestCase $ assertRight
   "lambda with builtin '<' typechecks"
   (typecheckSource "format := []\n lambda := \\x y => x < y")
 
+test6 :: Test
+test6 = TestCase $ assertRight 
+  "lambda that returns a lambda type checks"
+  (typecheckSource "format := []\n lambda := \\x => \\y => x < y")
+
+test7 :: Test
+test7 = TestCase $ assertEqual 
+  "fncall to lambda with switched param order '<' typechecks" 
+  (Right $ FnT BoolTag [IntTag, IntTag] []) -- TODO empty list is wrong
+  (typecheck $ LambdaU 
+        [ IdentifierU (Name "x")
+        , IdentifierU (Name "y")
+        ]
+        [ IdentifierU (Name "y")
+        , IdentifierU (Name "<")
+        , IdentifierU (Name "x")
+        ]
+  )
+
 tests :: [Test]
-tests = [test1, test2, test3, test4, test5]
+tests = [test1, test2, test3, test4, test5, test6, test7]

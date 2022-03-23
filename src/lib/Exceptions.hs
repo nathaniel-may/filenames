@@ -21,6 +21,7 @@ data TypeException
     | TypeMismatchFnReturn Name Type Type
     | TypeMismatchFnParam Name Type Type
     | TypeMismatchNumFnParams Name Int Int
+    | CouldNotInferLambdaReturnType
     deriving (Read, Show, Eq)
 
 data RuntimeException
@@ -48,6 +49,7 @@ instance Display TypeException where
     display (TypeMismatchFnParam (Name name) expected got) = "TypeMismatchFnParam: The function " <> name <> " expected parameter of type " <> display expected <> ", but got type " <> display got <> "."
     display (TypeMismatchNumFnParams (Name name) expected got) = "TypeMismatchNumFnParams: Function '" <> name <> "' requires " <> tshow expected <> "parameters. Got " <> tshow got <> "."
     display (NotAFunction (Name name) got) = "NotAFunction: Expected value " <> name <> " to be a function. Instead it's defined as a " <> display got <> "."
+    display CouldNotInferLambdaReturnType = "Could not infer lambda return type"
 
 instance Display RuntimeException where
     display Boop100 = "RuntimeException"

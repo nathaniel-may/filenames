@@ -78,14 +78,27 @@ typecheck_ table (FnCallU name params) = do
                 ((expected, got) : _) -> Left $ TypeMismatchFnParam name expected got
         got -> Left . NotAFunction name =<< inferType table got
 
-typecheck_ table (LambdaU params [x, OpIdentifierU name, y]) = do
+typecheck_ table (LambdaU params [x, OpIdentifierU name, y]) = typecheckFn table name [x, y]
+
+typecheck_ table (LambdaU params (IdentifierU name : xs)) = typecheckFn table name xs
+
+typecheck_ table (LambdaU params [value]) = do
+    (table', ret) <- typecheck_ table value
+    retType <- inferType table' ret
+    let unitList = UnitTag <$ params
+    pure (table, FnT retType unitList [])
+
+typecheck_ table (LambdaU params _) = Left CouldNotInferLambdaReturnType
+
+
+typecheckFn :: ValueTable -> Name -> [ExprU] -> Either TypeException (ValueTable, ExprT)
+typecheckFn table name params = do
     op <- maybeToRight (NoFunctionNamed name) (M.lookup name table)
     exprt <- case op of
         FnT ret [p0, p1] _ -> Right $ FnT ret [p0, p1] [] -- todo: exprts for codegen?? -- order of params?
         FnT _ params _ -> Left $ TypeMismatchNumFnParams name 2 (length params)
         exprt -> Left . NotAFunction name =<< inferType table exprt
     pure (table, exprt)
-
 
 checkType :: ValueTable -> Type -> ExprT -> Either TypeException ()
 checkType _ UnitTag UnitT = Right ()
