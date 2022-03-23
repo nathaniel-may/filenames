@@ -24,6 +24,7 @@ parseNTypecheck source = do
     parsed <- mapLeft ParseErr (parse source)
     mapLeft TypeErr (typecheck parsed)
 
+-- TODO this isn't true right now. 
 test1 :: Test
 test1 = TestCase $ assertTypeErr 
   "top-level must be assignment is a type error"

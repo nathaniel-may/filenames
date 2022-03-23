@@ -14,6 +14,10 @@ assertEqual' :: (Eq a, Eq b, Show a, Show b, Display b) => String -> Either b a 
 assertEqual' title (Right _) (Left err) = assertString (title <> "\n" <> T.unpack (display err))
 assertEqual' name expected v = assertEqual name expected v
 
+assertRight :: (Eq a, Eq b, Show a, Show b, Display b) => String -> Either b a -> Assertion
+assertRight title (Left err) = assertString (title <> "\n" <> T.unpack (display err))
+assertRight title _ = assertBool title True
+
 test1 :: Test
 test1 = TestCase $ assertEqual' 
   "list of multiple values parses"
@@ -62,7 +66,12 @@ test5 = TestCase $ assertEqual'
         , IdentifierU (Name "y")
         ]
   )
-  (mapLeft ParseException $ Mega.parse lambda "" "(\\x y => foo x y)")
+  (mapLeft ParseException $ Mega.parse lambda "" "\\x y => foo x y")
+
+test6 :: Test
+test6 = TestCase $ assertRight 
+  "parses a lambda with a fn call"
+  (parse "format := []\n lambda := (\\x y => foo x y)")
 
 -- test6 :: Test
 -- test6 = TestCase $ assertEqual' 
@@ -77,4 +86,4 @@ test5 = TestCase $ assertEqual'
 --   (mapLeft ParseException $ Mega.parse assignment "" "format := true")
 
 tests :: [Test]
-tests = [test1, test2, test3, test4, test5]
+tests = [test1, test2, test3, test4, test5, test6]

@@ -47,7 +47,7 @@ boolLiteral :: Parser ExprU
 boolLiteral = (\x -> if x == "true" then BoolU True else BoolU False) <$> (symbol "true" <|> symbol "false")
 
 opIdentifierChar :: Parser Char
-opIdentifierChar = satisfy (`elem` ['!', '#', '$', '%', '&', '*', '+', '.', '/', '<', '=', '>', '?', '@', '\\', '|', '^', '-', '~'])
+opIdentifierChar = satisfy (`elem` ['!', '#', '$', '%', '&', '*', '+', '.', '/', '<', '=', '>', '?', '@', '|', '^', '-', '~'])
 
 opIdentifier' :: Parser Text
 opIdentifier' = T.pack <$> some opIdentifierChar
@@ -71,7 +71,7 @@ literal :: Parser ExprU
 literal = boolLiteral <|> intLiteral <|> stringLiteral
 
 lambda :: Parser ExprU
-lambda = parens $ LambdaU <$> paramList <*> some (lexeme expr) where
+lambda = LambdaU <$> paramList <*> some (lexeme expr) where
   paramList = between (symbol "\\") (symbol "=>") (some $ lexeme identifier)
 
 expr :: Parser ExprU
