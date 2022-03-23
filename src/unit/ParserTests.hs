@@ -73,17 +73,15 @@ test6 = TestCase $ assertRight
   "parses a lambda with a fn call"
   (parse "format := []\n lambda := (\\x y => foo x y)")
 
--- test6 :: Test
--- test6 = TestCase $ assertEqual' 
---   "parses a lambda with an operator"
---   (Right $ AssignmentU (Name "format") (BoolU True))
---   (parse "format := [1, 2, 3]")
+test7 :: Test
+test7 = TestCase $ assertRight
+  "parses a lambda with an operator"
+  (parse "format := []\n lambda := \\x y => x > y")
 
--- test7 :: Test
--- test7 = TestCase $ assertEqual' 
---   "parses a lambda that returns a literal"
---   (Right $ AssignmentU (Name "format") (BoolU True))
---   (mapLeft ParseException $ Mega.parse assignment "" "format := true")
+test8 :: Test
+test8 = TestCase $ assertRight
+  "parses a lambda with an operator"
+  (parse "format := []\n lambda := \\x y => true")
 
 tests :: [Test]
-tests = [test1, test2, test3, test4, test5, test6]
+tests = [test1, test2, test3, test4, test5, test6, test7, test8]
