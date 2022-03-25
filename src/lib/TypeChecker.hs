@@ -30,6 +30,7 @@ typecheck_ table (RootU (expr : exprs)) = do
         []  -> Right ()
         -- only reporting first mismatch if there are several. could change the exception to show them all.
         (got : _) -> Left $ TopLevelNotAssignment got
+    -- TODO merging all tables sounds wrong. at this level, only the top-level assignments and built-ins should exist in the table.
     let finalTable = foldr M.union table1 tables
     finalExprt <- maybeToRight FormatNotFound (M.lookup (Name "format") finalTable)
     pure (finalTable, finalExprt)
@@ -78,8 +79,10 @@ typecheck_ table (FnCallU name params) = do
                 ((expected, got) : _) -> Left $ TypeMismatchFnParam name expected got
         got -> Left . NotAFunction name =<< inferType table got
 
+-- TODO param order
 typecheck_ table (LambdaU params [x, OpIdentifierU name, y]) = typecheckFn table name [x, y]
 
+-- TODO param order
 typecheck_ table (LambdaU params (IdentifierU name : xs)) = typecheckFn table name xs
 
 typecheck_ table (LambdaU params [value]) = do
@@ -94,11 +97,11 @@ typecheck_ table (LambdaU params _) = Left CouldNotInferLambdaReturnType
 typecheckFn :: ValueTable -> Name -> [ExprU] -> Either TypeException (ValueTable, ExprT)
 typecheckFn table name params = do
     op <- maybeToRight (NoFunctionNamed name) (M.lookup name table)
-    exprt <- case op of
+    fn <- case op of
         FnT ret [p0, p1] _ -> Right $ FnT ret [p0, p1] [] -- todo: exprts for codegen?? -- order of params?
         FnT _ params _ -> Left $ TypeMismatchNumFnParams name 2 (length params)
         exprt -> Left . NotAFunction name =<< inferType table exprt
-    pure (table, exprt)
+    pure (table, fn)
 
 checkType :: ValueTable -> Type -> ExprT -> Either TypeException ()
 checkType _ UnitTag UnitT = Right ()
