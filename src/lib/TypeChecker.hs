@@ -10,8 +10,8 @@ import           Exceptions           (TypeException(..))
 import           Types                -- import all
 
 
-typecheck :: ExprU -> Either TypeException ExprT
-typecheck x = snd <$> runReader (runExceptT (typecheck_ x)) builtins
+typecheck :: MonadError TypeException m => ExprU -> m ExprT
+typecheck x = snd <$> runReaderT (typecheck_ x) builtins
 
 typecheck_ :: (MonadReader Env m, MonadError TypeException m) => ExprU -> m Closure
 -- nothing in source file
