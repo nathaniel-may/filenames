@@ -39,7 +39,7 @@ data Type
     | FnTag Type [Type]
     deriving (Read, Show, Eq)
 
-type ValueTable = Map Name ExprT
+type Env = Map Name ExprT
 
 -- TODO
 -- data BuiltIn
