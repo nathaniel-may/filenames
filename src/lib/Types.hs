@@ -41,10 +41,7 @@ data Type
 
 type Env = Map Name ExprT
 
--- TODO
--- data BuiltIn
---     = BuiltIn Name ExprT
---     deriving (Read, Show, Eq)
+type Closure = (Env, ExprT)
 
 
 instance Display Type where
