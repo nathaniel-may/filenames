@@ -7,6 +7,7 @@ import qualified RuntimeTests
 import qualified TypeCheckerTests
 import           Test.HUnit    -- import all
 
+
 allTests :: [Test]
 allTests = TypeCheckerTests.tests <> RuntimeTests.tests <> ParserTests.tests <> FrontEndTests.tests
 
