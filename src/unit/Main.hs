@@ -15,7 +15,5 @@ main :: IO ()
 main = do
   results <- runTestTT $ TestList allTests
   if errors results + failures results == 0
-    then
-      exitSuccess
-    else
-      exitWith (ExitFailure 1)
+  then exitSuccess
+  else exitWith (ExitFailure 1)
