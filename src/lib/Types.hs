@@ -29,7 +29,6 @@ data ExprT
     | IntT Int
     | BoolT Bool
     | ListT Type [ExprT]
-    | FnDefT Name Type -- TODO I think I can delete this. FnT replaces it.
     -- name of function, type of function, remaining param types, already applied values
     | FnT Name Type [ExprT]
     | ApplyT ExprT ExprT

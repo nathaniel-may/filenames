@@ -16,7 +16,6 @@ toHVal (IntT i) = tshow i
 toHVal (BoolT b) = tshow b
 toHVal (ListT _ xs) = "[" <> elems <> "]" where
     elems = T.dropEnd 1 (foldr (\x y -> x <> "," <> y) "" (toHVal <$> xs))
-toHVal FnDefT{} = "" -- TODO stub
 toHVal FnT{} = "" -- TODO stub
 toHVal ApplyT{} = "" -- TODO stub
 toHVal (FlipT f) = "flip " <> toHVal f

@@ -163,7 +163,6 @@ inferType (table, ApplyT f e) = do
             then throwError $ TypeMismatch p te
             else pure ret
         _ -> throwError $ CannotApplyNotAFunction tf te
-inferType (_, FnDefT{}) = pure UnitTag
 -- TODO I'm just blindly believing it's right here. is that ok?
 inferType (_, FnT _ tag _) = pure tag
 inferType (table, FlipT expr) = do
