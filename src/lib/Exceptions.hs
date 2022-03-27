@@ -24,6 +24,7 @@ data TypeException
     | TypeMismatchFnParam Name Type Type
     | TypeMismatchNumFnParams Name Int Int
     | CannotApplyNotAFunction Type Type
+    | BadPartialApplication Type
     deriving (Read, Show, Eq)
 
 data RuntimeException
@@ -54,6 +55,7 @@ instance Display TypeException where
     display (TypeMismatchNumFnParams name expected got) = "TypeMismatchNumFnParams: Function '" <> display name <> "' requires " <> tshow expected <> "parameters. Got " <> tshow got <> "."
     display (NotAFunction name got) = "NotAFunction: Expected value " <> display name <> " to be a function. Instead it's defined as a " <> display got <> "."
     display (CannotApplyNotAFunction nonfn applied) = "CannotApplyNotAFunction: value of type " <> display nonfn <> " is not a function. Cannot apply a value of type " <> display applied <> " to it."
+    display (BadPartialApplication name) = "BadPartialApplication: attempted to flip the order of parameters for a value of type " <> display name <> ", but it does not take at least two parameters."
 
 instance Display RuntimeException where
     display Boop100 = "RuntimeException"

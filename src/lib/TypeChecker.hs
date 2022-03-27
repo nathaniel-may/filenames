@@ -85,9 +85,16 @@ typecheck_ (InfixIdentifierU name) = do
 
 typecheck_ (ApplyU x (InfixIdentifierU name)) = typecheck_ (ApplyU (IdentifierU name) x)
 
-typecheck_ (ApplyU (InfixIdentifierU name) x) = typecheck_ (ApplyU x (IdentifierU name))
+typecheck_ (ApplyU (InfixIdentifierU name) x) = do
+    (_, ft) <- typecheck_ (IdentifierU name)
+    (_, xt) <- typecheck_ x
+    table <- ask
+    let flipped = ApplyT (FlipT ft) xt
+    expected <- inferType (table, flipped)
+    checkType (table, flipped) expected
+    pure (table, flipped)
 
-typecheck_ foo@(ApplyU f e) = do
+typecheck_ (ApplyU f e) = do
     (table, ft) <- typecheck_ f
     tf <- inferType (table, ft)
     (table, et) <- typecheck_ e
@@ -98,7 +105,7 @@ typecheck_ foo@(ApplyU f e) = do
             if p /= te
             then throwError $ TypeMismatch p te
             else pure (table, FnT name ret (applied <> [et])) -- TODO should I reverse this order instead?
-        _ -> trace ("***2***" <> tshow foo) throwError $ CannotApplyNotAFunction tf te
+        _ -> throwError $ CannotApplyNotAFunction tf te
 
 
 -- TODO put Type before Closure so it can be curried better?
@@ -125,10 +132,20 @@ checkType (table, ApplyT f e) expected = do
             then throwError $ TypeMismatch expected ret
             else pure ()
         nonfn -> throwError $ CannotApplyNotAFunction nonfn te
--- TODO fix this vv
-checkType closure FnTag{} = throwError . TypeMismatch BoolTag =<< inferType closure
 -- TODO stub till Parsers have a type representation
 checkType closure ParserTag{} = throwError . TypeMismatch BoolTag =<< inferType closure
+checkType (table, FlipT expr) (FnTag x (FnTag y ret)) = do
+    got <- inferType (table, expr)
+    case got of
+        (FnTag _  (FnTag _  ret')) | ret /= ret' -> throwError $ TypeMismatch ret ret'
+        (FnTag y' (FnTag _  _   )) | y /= y' -> throwError $ TypeMismatch y y'
+        (FnTag _  (FnTag x' _   )) | x /= x' -> throwError $ TypeMismatch x x'
+        (FnTag _  (FnTag _  _   )) -> pure ()
+        _ -> throwError $ BadPartialApplication got
+checkType closure@(_, FlipT _) expected = throwError . TypeMismatch expected =<< inferType closure
+checkType closure expected@FnTag{} = do
+    got <- inferType closure
+    if got /= expected then throwError $ TypeMismatch expected got else pure () 
 
 
 inferType :: (MonadError TypeException m) => Closure -> m Type
@@ -137,7 +154,7 @@ inferType (_, StringT _) = pure StringTag
 inferType (_, IntT _) = pure IntTag
 inferType (_, BoolT _) = pure BoolTag
 inferType closure@(table, ListT tag _) = runReaderT (checkType closure (ListTag tag)) table $> ListTag tag
-inferType (table, foo@(ApplyT f e)) = do
+inferType (table, ApplyT f e) = do
     tf <- inferType (table, f)
     te <- inferType (table, e)
     case tf of
@@ -145,10 +162,15 @@ inferType (table, foo@(ApplyT f e)) = do
             if p /= te
             then throwError $ TypeMismatch p te
             else pure ret
-        _ -> trace ("***1***" <> tshow foo) throwError $ CannotApplyNotAFunction tf te
+        _ -> throwError $ CannotApplyNotAFunction tf te
 inferType (_, FnDefT{}) = pure UnitTag
 -- TODO I'm just blindly believing it's right here. is that ok?
 inferType (_, FnT _ tag _) = pure tag
+inferType (table, FlipT expr) = do
+    got <- inferType (table, expr)
+    case got of
+        (FnTag x (FnTag y ret)) -> pure (FnTag y (FnTag x ret))
+        _ -> throwError $ BadPartialApplication got   
 
 
 builtins :: Env
@@ -157,7 +179,7 @@ builtins = M.fromList [
   , (Name "no_delim", FnT (Name "no_delim") (FnTag (FnTag IntTag BoolTag) (FnTag (ListTag StringTag) ParserTag)) [])
   , (Name "<",  FnT (Name "<")  (FnTag IntTag (FnTag IntTag BoolTag)) [])
   , (Name ">",  FnT (Name ">")  (FnTag IntTag (FnTag IntTag BoolTag)) [])
-  , (Name "==", FnT (Name "=") (FnTag IntTag (FnTag IntTag BoolTag)) [])
+  , (Name "==", FnT (Name "=")  (FnTag IntTag (FnTag IntTag BoolTag)) [])
   , (Name "==", FnT (Name "==") (FnTag IntTag (FnTag IntTag BoolTag)) [])
   , (Name "<=", FnT (Name "<=") (FnTag IntTag (FnTag IntTag BoolTag)) [])
   , (Name ">=", FnT (Name ">=") (FnTag IntTag (FnTag IntTag BoolTag)) [])

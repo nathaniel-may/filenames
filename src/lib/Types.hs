@@ -33,6 +33,7 @@ data ExprT
     -- name of function, type of function, remaining param types, already applied values
     | FnT Name Type [ExprT]
     | ApplyT ExprT ExprT
+    | FlipT ExprT
     deriving (Read, Show, Eq)
 
 data Type

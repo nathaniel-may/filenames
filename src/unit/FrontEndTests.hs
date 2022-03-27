@@ -42,5 +42,11 @@ test3 = TestCase $ assertEqual'
   (Right $ FnT (Name "<") BoolTag [IntT 10, IntT 20])
   (parseNTypecheck "let format := {10 < 20}")
 
+test4 :: Test
+test4 = TestCase $ assertEqual' 
+  "operator right partial application works"
+  (Right $ ApplyT (FlipT (FnT (Name ">=") (FnTag IntTag (FnTag IntTag BoolTag)) [])) (IntT 3))
+  (parseNTypecheck "let format := {>= 3}")
+
 tests :: [Test]
-tests = [test1, test2, test3]
+tests = [test1, test2, test3, test4]

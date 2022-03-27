@@ -48,9 +48,16 @@ test6 = TestCase $ assertEqual
 
 test7 :: Test
 test7 = TestCase $ assertEqual 
-  "partial application of builtin '<' typechecks" 
+  "left partial application of builtin '<' typechecks" 
   (Right $ FnT (Name "<") (FnTag IntTag BoolTag) [IntT 1])
   (typecheck $ ApplyU (IntU 1) (InfixIdentifierU $ Name "<"))
 
+-- TODO this exprT can be optimized to move the application inside the FnT and remove the outer ApplyT
+test8 :: Test
+test8 = TestCase $ assertEqual 
+  "right partial application of builtin '<' typechecks" 
+  (Right $ ApplyT (FlipT (FnT (Name "<") (FnTag IntTag (FnTag IntTag BoolTag)) [])) (IntT 100))
+  (typecheck $ ApplyU (InfixIdentifierU $ Name "<") (IntU 100))
+
 tests :: [Test]
-tests = [test1, test2, test3, test4, test5, test6, test7]
+tests = [test1, test2, test3, test4, test5, test6, test7, test8]

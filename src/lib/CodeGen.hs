@@ -19,6 +19,7 @@ toHVal (ListT _ xs) = "[" <> elems <> "]" where
 toHVal FnDefT{} = "" -- TODO stub
 toHVal FnT{} = "" -- TODO stub
 toHVal ApplyT{} = "" -- TODO stub
+toHVal (FlipT f) = "flip " <> toHVal f
 
 -- header just prints the value as the main operation
 header :: Text
