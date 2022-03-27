@@ -18,6 +18,7 @@ data ExprU
     | BoolU Bool
     | ListU [ExprU]
     | AssignmentU Name ExprU
+    | InfixIdentifierU Name
     | IdentifierU Name
     | ApplyU ExprU ExprU
     deriving (Read, Show, Eq)

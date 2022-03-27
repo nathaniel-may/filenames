@@ -66,5 +66,12 @@ test6 = TestCase $ assertEqual'
   (Right . BodyU $ [BoolU False, IntU 3])
   (parse "false\n3")
 
+test7 :: Test
+test7 = TestCase $ assertEqual'
+  "parses operator function application with builtin `<`"
+  -- Note: infix operator stays infix in the ast till typechecking
+  (Right $ BodyU [ApplyU (ApplyU (IntU 1) (InfixIdentifierU (Name "<"))) (IntU 2)])
+  (parse "{1 < 2}")
+
 tests :: [Test]
-tests = [test1, test2, test3, test4, test5, test6]
+tests = [test1, test2, test3, test4, test5, test6, test7]

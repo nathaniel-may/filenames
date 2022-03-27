@@ -79,11 +79,18 @@ typecheck_ (IdentifierU name) = do
     table <- ask
     maybe (throwError $ NoValueNamed name) (pure . (table,)) (M.lookup name table)
 
-typecheck_ (ApplyU f e) = do
+typecheck_ (InfixIdentifierU name) = do
+    table <- ask
+    maybe (throwError $ NoValueNamed name) (pure . (table,)) (M.lookup name table)
+
+typecheck_ (ApplyU x (InfixIdentifierU name)) = typecheck_ (ApplyU (IdentifierU name) x)
+
+typecheck_ (ApplyU (InfixIdentifierU name) x) = typecheck_ (ApplyU x (IdentifierU name))
+
+typecheck_ foo@(ApplyU f e) = do
     (table, ft) <- typecheck_ f
     tf <- inferType (table, ft)
     (table, et) <- typecheck_ e
-    traceM ("**********" <> tshow ft <> " APPLIED TO " <> tshow et)
     te <- inferType (table, et)
     table <- ask
     case ft of 
@@ -91,7 +98,7 @@ typecheck_ (ApplyU f e) = do
             if p /= te
             then throwError $ TypeMismatch p te
             else pure (table, FnT name ret (applied <> [et])) -- TODO should I reverse this order instead?
-        _ -> throwError $ CannotApplyNotAFunction tf te
+        _ -> trace ("***2***" <> tshow foo) throwError $ CannotApplyNotAFunction tf te
 
 
 -- TODO put Type before Closure so it can be curried better?
@@ -130,7 +137,7 @@ inferType (_, StringT _) = pure StringTag
 inferType (_, IntT _) = pure IntTag
 inferType (_, BoolT _) = pure BoolTag
 inferType closure@(table, ListT tag _) = runReaderT (checkType closure (ListTag tag)) table $> ListTag tag
-inferType (table, ApplyT f e) = do
+inferType (table, foo@(ApplyT f e)) = do
     tf <- inferType (table, f)
     te <- inferType (table, e)
     case tf of
@@ -138,7 +145,7 @@ inferType (table, ApplyT f e) = do
             if p /= te
             then throwError $ TypeMismatch p te
             else pure ret
-        _ -> throwError $ CannotApplyNotAFunction tf te
+        _ -> trace ("***1***" <> tshow foo) throwError $ CannotApplyNotAFunction tf te
 inferType (_, FnDefT{}) = pure UnitTag
 -- TODO I'm just blindly believing it's right here. is that ok?
 inferType (_, FnT _ tag _) = pure tag
@@ -150,6 +157,7 @@ builtins = M.fromList [
   , (Name "no_delim", FnT (Name "no_delim") (FnTag (FnTag IntTag BoolTag) (FnTag (ListTag StringTag) ParserTag)) [])
   , (Name "<",  FnT (Name "<")  (FnTag IntTag (FnTag IntTag BoolTag)) [])
   , (Name ">",  FnT (Name ">")  (FnTag IntTag (FnTag IntTag BoolTag)) [])
+  , (Name "==", FnT (Name "=") (FnTag IntTag (FnTag IntTag BoolTag)) [])
   , (Name "==", FnT (Name "==") (FnTag IntTag (FnTag IntTag BoolTag)) [])
   , (Name "<=", FnT (Name "<=") (FnTag IntTag (FnTag IntTag BoolTag)) [])
   , (Name ">=", FnT (Name ">=") (FnTag IntTag (FnTag IntTag BoolTag)) [])

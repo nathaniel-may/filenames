@@ -49,6 +49,15 @@ intLiteral = IntU . read <$> some digitChar
 boolLiteral :: Parser ExprU
 boolLiteral = (\x -> if x == "true" then BoolU True else BoolU False) <$> (symbol "true" <|> symbol "false")
 
+opIdentifierChar :: Parser Char
+opIdentifierChar = satisfy (`elem` ['!', '#', '$', '%', '&', '*', '+', '.', '/', '<', '=', '>', '?', '@', '|', '^', '-', '~'])
+
+opIdentifier' :: Parser Text
+opIdentifier' = T.pack <$> some opIdentifierChar
+
+opIdentifier :: Parser ExprU
+opIdentifier = InfixIdentifierU . Name <$> opIdentifier'
+
 identifierChar :: Parser Char
 identifierChar = satisfy (\x -> isDigit x || isAlpha x || x == '\''|| x == '_')
 
@@ -64,8 +73,8 @@ assignment = AssignmentU . Name <$> (symbol "let" *> lexeme identifier') <* symb
 apply :: Parser ExprU
 apply = curlies (apply' =<< some (lexeme value)) where
   apply' [] = fail "cannot have an empty function block"
-  apply' [_] = fail "unexpected value in a function block"
-  apply' (x : y : z) = pure $ foldr ApplyU (ApplyU x y) z
+  apply' [_] = fail "unexpected value in a function block. try using parentheses instead of curlies."
+  apply' (x : y : z) = pure $ foldr (flip ApplyU) (ApplyU x y) z
 
 value :: Parser ExprU
 value = choice
@@ -73,6 +82,7 @@ value = choice
   , intLiteral
   , boolLiteral
   , list
+  , opIdentifier
   , identifier
   ]
 

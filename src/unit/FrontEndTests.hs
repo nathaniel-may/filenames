@@ -34,7 +34,13 @@ test2 :: Test
 test2 = TestCase $ assertTypeErr 
   "format not found is a type error"
   FormatNotFound
-  "true"
+  "let boop := true"
+
+test3 :: Test
+test3 = TestCase $ assertEqual' 
+  "operator function application works"
+  (Right $ FnT (Name "<") BoolTag [IntT 10, IntT 20])
+  (parseNTypecheck "let format := {10 < 20}")
 
 tests :: [Test]
-tests = [test1]
+tests = [test1, test2, test3]

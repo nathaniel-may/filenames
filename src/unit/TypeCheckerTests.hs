@@ -44,13 +44,13 @@ test6 :: Test
 test6 = TestCase $ assertEqual 
   "non-partial application of builtin '<' typechecks" 
   (Right $ FnT (Name "<") BoolTag [IntT 1, IntT 2])
-  (typecheck $ ApplyU (ApplyU (IdentifierU $ Name "<") (IntU 1)) (IntU 2))
+  (typecheck $ ApplyU (ApplyU (IntU 1) (InfixIdentifierU $ Name "<")) (IntU 2))
 
 test7 :: Test
 test7 = TestCase $ assertEqual 
   "partial application of builtin '<' typechecks" 
   (Right $ FnT (Name "<") (FnTag IntTag BoolTag) [IntT 1])
-  (typecheck $ ApplyU (IdentifierU $ Name "<") (IntU 1))
+  (typecheck $ ApplyU (IntU 1) (InfixIdentifierU $ Name "<"))
 
 tests :: [Test]
 tests = [test1, test2, test3, test4, test5, test6, test7]
