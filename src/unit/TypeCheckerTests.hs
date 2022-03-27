@@ -46,5 +46,11 @@ test6 = TestCase $ assertEqual
   (Right $ FnT (Name "<") BoolTag [IntT 1, IntT 2])
   (typecheck $ ApplyU (ApplyU (IdentifierU $ Name "<") (IntU 1)) (IntU 2))
 
+test7 :: Test
+test7 = TestCase $ assertEqual 
+  "partial application of builtin '<' typechecks" 
+  (Right $ FnT (Name "<") (FnTag IntTag BoolTag) [IntT 1])
+  (typecheck $ ApplyU (IdentifierU $ Name "<") (IntU 1))
+
 tests :: [Test]
-tests = [test1, test2, test3, test4, test5, test6]
+tests = [test1, test2, test3, test4, test5, test6, test7]
