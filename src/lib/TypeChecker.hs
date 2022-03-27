@@ -1,4 +1,4 @@
-{-# LANGUAGE GADTs, FlexibleContexts, TupleSections #-}
+{-# LANGUAGE GADTs, FlexibleContexts, TupleSections, LambdaCase #-}
 {-# OPTIONS_GHC -Wno-name-shadowing #-}
 
 module TypeChecker where
@@ -11,13 +11,24 @@ import           Exceptions           (TypeException(..))
 import           Types                -- import all
 
 
-typecheck :: MonadError TypeException m => ExprU -> m ExprT
-typecheck x = do
-    (table, _) <- runReaderT (typecheck_ x) builtins
+typecheckFromRoot :: MonadError TypeException m => ExprU -> m ExprT
+typecheckFromRoot body@(BodyU assignments) = do
+    let nonAssignment = filter (\case {AssignmentU{} -> False; _ -> True}) assignments
+    case nonAssignment of
+        [] -> pure ()
+        _ -> throwError TopLevelNotAssignment
+    (table, _) <- runReaderT (typecheck_ body) builtins
     -- program root is defined by top-level assignment to value "format"
     case M.lookup (Name "format") table of
         Nothing  -> throwError FormatNotFound
         (Just root) -> pure root
+-- TODO is this the best error? maybe split up into multiple errors?
+typecheckFromRoot _ = throwError TopLevelNotAssignment
+
+
+typecheck :: MonadError TypeException m => ExprU -> m ExprT
+typecheck x = snd <$> runReaderT (typecheck_ x) builtins
+
 
 typecheck_ :: (MonadReader Env m, MonadError TypeException m) => ExprU -> m Closure
 -- nothing in source file
@@ -80,20 +91,6 @@ typecheck_ (ApplyU f e) = do
             then throwError $ TypeMismatch p te
             else pure (table, FnT name ret (applied <> [et])) -- TODO should I reverse this order instead?
         _ -> throwError $ CannotApplyNotAFunction tf te
-
--- TODO triple check this.
-typecheck_ (FnU name ids body@(BodyU _)) = do
-    (table, ret) <- typecheck_ body
-    tr <- inferType (table, ret)
-    -- TODO this isn't how you infer the type of an identifier...
-    types <- traverse (curry inferType table) ids
-    let ft = FnT name (foldr FnTag tr types) []
-    let table = M.insert name ft table
-    pure (table, ft)
-
-typecheck_ (FnU name _ notbody) = do
-    tnotbody <- inferType =<< typecheck_ notbody
-    throwError $ FunctionHasNoBody name tnotbody
 
 
 -- TODO put Type before Closure so it can be curried better?

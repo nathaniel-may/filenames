@@ -17,7 +17,7 @@ assertEqual' name expected v = assertEqual name expected v
 test1 :: Test
 test1 = TestCase $ assertEqual' 
   "list of multiple values parses"
-  (Right $ RootU [AssignmentU (Name "bad_list") (ListU [
+  (Right $ BodyU [AssignmentU (Name "bad_list") (ListU [
         IntU 1
       , BoolU True
       , ListU [
@@ -26,29 +26,45 @@ test1 = TestCase $ assertEqual'
       ]
       , IntU 3
   ])])
-  (parse "bad_list := [1, true, [2,    false], 3]  ")
+  (parse "let bad_list := [1, true, [2,    false], 3]  ")
 
 test2 :: Test
 test2 = TestCase $ assertEqual' 
   "top-level format parses as an assignment"
-  (Right . RootU $ [AssignmentU (Name "format") (ListU [
+  (Right . BodyU $ [AssignmentU (Name "format") (ListU [
         IntU 1
       , IntU 2
       , IntU 3
   ])])
-  (parse "format := [1, 2, 3]")
+  (parse "let format := [1, 2, 3]")
 
 test3 :: Test
 test3 = TestCase $ assertEqual' 
   "assignment parser works properly"
   (Right $ AssignmentU (Name "name") (BoolU True))
-  (mapLeft ParseException $ Mega.parse assignment "" "name := true")
+  (mapLeft ParseException $ Mega.parse assignment "" "let name := true")
 
 test4 :: Test
 test4 = TestCase $ assertEqual' 
   "assignment parser works properly with format name"
   (Right $ AssignmentU (Name "format") (BoolU True))
-  (mapLeft ParseException $ Mega.parse assignment "" "format := true")
+  (mapLeft ParseException $ Mega.parse assignment "" "let format := true")
+
+test5 :: Test
+test5 = TestCase $ assertEqual' 
+  "parses an apply statement"
+  (Right . BodyU $ [
+    AssignmentU 
+      (Name "format")
+      (ApplyU (IdentifierU $ Name "x") (IdentifierU $ Name "y"))
+  ])
+  (parse "let format := {x y}")
+
+test6 :: Test
+test6 = TestCase $ assertEqual' 
+  "parses a source file with multiple expressions"
+  (Right . BodyU $ [BoolU False, IntU 3])
+  (parse "false\n3")
 
 tests :: [Test]
-tests = [test1, test2, test3, test4]
+tests = [test1, test2, test3, test4, test5, test6]

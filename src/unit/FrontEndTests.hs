@@ -8,7 +8,7 @@ import qualified Data.Text     as T
 import           Exceptions    -- import all
 import           Test.HUnit    -- import all
 import           Parsers       (parse)
-import           TypeChecker   (typecheck)
+import           TypeChecker   (typecheckFromRoot)
 import           Types         -- import all
 
 
@@ -22,12 +22,18 @@ assertTypeErr name expected source = assertEqual name (Left $ TypeErr expected) 
 parseNTypecheck :: Text -> Either CompilationException ExprT
 parseNTypecheck source = do
     parsed <- mapLeft ParseErr (parse source)
-    mapLeft TypeErr (typecheck parsed)
+    mapLeft TypeErr (typecheckFromRoot parsed)
 
 test1 :: Test
 test1 = TestCase $ assertTypeErr 
   "top-level must be assignment is a type error"
-  (TopLevelNotAssignment BoolTag)
+  TopLevelNotAssignment
+  "let format := true\nfalse"
+
+test2 :: Test
+test2 = TestCase $ assertTypeErr 
+  "format not found is a type error"
+  FormatNotFound
   "true"
 
 tests :: [Test]

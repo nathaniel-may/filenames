@@ -1,7 +1,7 @@
 module Parsers where
 
 import           CustomPrelude              hiding (many, some)
-import           Data.Text                  as T
+import qualified Data.Text                  as T
 import           Exceptions                 (ParseException(..))      
 import qualified Text.Megaparsec            as Mega
 import           Text.Megaparsec            -- import all
@@ -34,6 +34,9 @@ parens = between (symbol "(") (symbol ")")
 brackets :: Parser a -> Parser a
 brackets = between (symbol "[") (symbol "]")
 
+curlies :: Parser a -> Parser a
+curlies = between (symbol "{") (symbol "}")
+
 stringLiteral :: Parser ExprU
 stringLiteral = StringU . T.pack <$> (char '\"' *> manyTill L.charLiteral (char '\"'))
 
@@ -50,21 +53,33 @@ identifierChar :: Parser Char
 identifierChar = satisfy (\x -> isDigit x || isAlpha x || x == '\''|| x == '_')
 
 identifier' :: Parser Text
-identifier' = T.pack <$> ((:) <$> lowerChar <*> many identifierChar)
+identifier' = T.pack <$> ((:) <$> lowerChar <*> many identifierChar) <* sc
 
 identifier :: Parser ExprU
-identifier = IdentifierU . Name <$> identifier'
+identifier = notFollowedBy (symbol "let") *> (IdentifierU . Name <$> identifier')
 
 assignment :: Parser ExprU
-assignment = AssignmentU . Name <$> lexeme identifier' <* symbol ":=" <*> lexeme expr
+assignment = AssignmentU . Name <$> (symbol "let" *> lexeme identifier') <* symbol ":=" <*> lexeme expr
+
+apply :: Parser ExprU
+apply = curlies (apply' =<< some (lexeme value)) where
+  apply' [] = fail "cannot have an empty function block"
+  apply' [_] = fail "unexpected value in a function block"
+  apply' (x : y : z) = pure $ foldr ApplyU (ApplyU x y) z
+
+value :: Parser ExprU
+value = choice
+  [ stringLiteral
+  , intLiteral
+  , boolLiteral
+  , list
+  , identifier
+  ]
 
 expr :: Parser ExprU
 expr = choice
   [ parens expr
-  , stringLiteral
-  , intLiteral
-  , boolLiteral
-  , list
+  , apply
+  , value
   , assignment
-  , identifier
   ]

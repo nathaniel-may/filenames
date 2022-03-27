@@ -12,19 +12,19 @@ Filenames is a small DSL based on parser generators that lets you describe the f
 format.txt:
 
 ```
-d := "-"
+let d := "-"
 
-format := with_delim d [
+let format := with_delim d [
     no_delim (x => x == 1) ["art", "photo"]
   , delim d (x => x >= 0) ["nature", "architecture", "people"]
   , id
   , no_delim (x => x >= 0) ["1", "2", "3", "4", "5", "6", "7", "8", "9"]
   ]
 
-id := no_delim (x => x == 6) id_chars
+let id := no_delim (x => x == 6) id_chars
 
 // limited characters for example
-id_chars := ["A", "B", "C", "D", "E", "F", "1", "2", "3"]
+let id_chars := ["A", "B", "C", "D", "E", "F", "1", "2", "3"]
 ```
 
 To run:

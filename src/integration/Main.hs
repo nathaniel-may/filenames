@@ -52,7 +52,7 @@ runProgram (SourceFile sourcePath source) = do
 
 test1 :: FilePath -> IO Test
 test1 sourcePath = do
-    e <- runProgram (SourceFile sourcePath "format := [\"a\", \"b\", \"c\"]")
+    e <- runProgram (SourceFile sourcePath "let format := [\"a\", \"b\", \"c\"]")
     output <- case e of
         (Left err) -> pure (display err)
         (Right stdout) -> stdout

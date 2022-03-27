@@ -19,8 +19,6 @@ data ExprU
     | ListU [ExprU]
     | AssignmentU Name ExprU
     | IdentifierU Name
-    -- name, identifiers, body
-    | FnU Name [Name] ExprU
     | ApplyU ExprU ExprU
     deriving (Read, Show, Eq)
 

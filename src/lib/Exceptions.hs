@@ -19,7 +19,7 @@ data TypeException
     | NoFunctionNamed Name
     | NotAFunction Name Type
     | TypeMismatch Type Type
-    | TopLevelNotAssignment Type
+    | TopLevelNotAssignment -- TODO reference source at error (getting the type here is awkward work)
     | TypeMismatchFnReturn Name Type Type
     | TypeMismatchFnParam Name Type Type
     | TypeMismatchNumFnParams Name Int Int
@@ -48,7 +48,7 @@ instance Display TypeException where
     display (NoValueNamed name) = "NoValueNamed: No value named '" <> display name <> "'."
     display (NoFunctionNamed name) = "NoFunctionNamed: No value named '" <> display name <> "'."
     display (TypeMismatch expected got) = "TypeMismatch: Expected type " <> display expected <> " but got type " <> display got <> "."
-    display (TopLevelNotAssignment got) = "TopLevelNotAssignment: All top-level expressions must be assignments. Found the following types: " <> display got <> "."
+    display TopLevelNotAssignment = "TopLevelNotAssignment: All top-level expressions must be assignments."
     display (TypeMismatchFnReturn name expected got) = "TypeMismatchFnReturn: Expected type " <> display expected <> ", but function '" <> display name <> "' returns type " <> display got <> "."
     display (TypeMismatchFnParam name expected got) = "TypeMismatchFnParam: The function " <> display name <> " expected parameter of type " <> display expected <> ", but got type " <> display got <> "."
     display (TypeMismatchNumFnParams name expected got) = "TypeMismatchNumFnParams: Function '" <> display name <> "' requires " <> tshow expected <> "parameters. Got " <> tshow got <> "."

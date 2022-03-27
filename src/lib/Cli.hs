@@ -9,7 +9,7 @@ import           Parsers               (parse)
 import           System.IO             (readFile, writeFile)
 import           System.FilePath.Posix (replaceExtension)
 import           System.Process        (callCommand)
-import           TypeChecker           (typecheck)
+import           TypeChecker           (typecheckFromRoot)
 
 
 newtype Input = Input
@@ -38,7 +38,7 @@ run (Input filepath) = do
 compile :: Text -> Either CompilationException Text
 compile source = do
     parsed <- mapLeft ParseErr (parse source)
-    checked <- mapLeft TypeErr (typecheck parsed)
+    checked <- mapLeft TypeErr (typecheckFromRoot parsed)
     pure (gen checked)
 
 -- writes codegen string to a file and runs system ghc on it
