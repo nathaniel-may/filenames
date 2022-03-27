@@ -12,26 +12,29 @@ import           Types                -- import all
 
 
 typecheck :: MonadError TypeException m => ExprU -> m ExprT
-typecheck x = snd <$> runReaderT (typecheck_ x) builtins
+typecheck x = do
+    (table, _) <- runReaderT (typecheck_ x) builtins
+    -- program root is defined by top-level assignment to value "format"
+    case M.lookup (Name "format") table of
+        Nothing  -> throwError FormatNotFound
+        (Just root) -> pure root
 
 typecheck_ :: (MonadReader Env m, MonadError TypeException m) => ExprU -> m Closure
 -- nothing in source file
-typecheck_ (RootU []) = throwError EmptySourceFile
+typecheck_ (BodyU []) = throwError EmptyBody
 
--- program root is defined by assignment to value "format"
-typecheck_ (RootU exprs) = do
+typecheck_ (BodyU exprs) = do
     closures <- traverse typecheck_ exprs
-    types <- traverse inferType closures
-    let mismatches = filter (/=UnitTag) types
-    -- all top-level definitions must be assignments. Should be enforced here, not at parse time.
-    _ <- case mismatches of
-        []  -> pure ()
-        -- only reporting first mismatch if there are several. could change the exception to show them all.
-        (got : _) -> throwError $ TopLevelNotAssignment got
+    let (_, types) = unzip closures
+    let nonUnitClosures = takeWhile (/=UnitT) types
     table <- ask
+    -- all top-level definitions must be assignments. Should be enforced here, not at parse time.
+    finalExprt <- case nonUnitClosures of
+        [] -> pure UnitT  -- expected at the top level but nowhere else really (TODO make special case ala BodyU True for root?)
+        [return] -> pure return
+        unassigned -> throwError . MultipleUnassignedValuesInBody =<< traverse (curry inferType table) unassigned
     let (tables, _) = unzip closures
     let finalTable = foldr M.union table tables
-    finalExprt <- maybe (throwError FormatNotFound) pure (M.lookup (Name "format") finalTable)
     pure (finalTable, finalExprt)
 
 typecheck_ (StringU s) =
@@ -78,7 +81,22 @@ typecheck_ (ApplyU f e) = do
             else pure (table, FnT name ret (applied <> [et])) -- TODO should I reverse this order instead?
         _ -> throwError $ CannotApplyNotAFunction tf te
 
+-- TODO triple check this.
+typecheck_ (FnU name ids body@(BodyU _)) = do
+    (table, ret) <- typecheck_ body
+    tr <- inferType (table, ret)
+    -- TODO this isn't how you infer the type of an identifier...
+    types <- traverse (curry inferType table) ids
+    let ft = FnT name (foldr FnTag tr types) []
+    let table = M.insert name ft table
+    pure (table, ft)
 
+typecheck_ (FnU name _ notbody) = do
+    tnotbody <- inferType =<< typecheck_ notbody
+    throwError $ FunctionHasNoBody name tnotbody
+
+
+-- TODO put Type before Closure so it can be curried better?
 checkType :: (MonadError TypeException m) => Closure -> Type -> m ()
 checkType (_, UnitT) UnitTag = pure ()
 checkType closure UnitTag = throwError . TypeMismatch UnitTag =<< inferType closure
@@ -102,7 +120,10 @@ checkType (table, ApplyT f e) expected = do
             then throwError $ TypeMismatch expected ret
             else pure ()
         nonfn -> throwError $ CannotApplyNotAFunction nonfn te
+-- TODO fix this vv
 checkType closure FnTag{} = throwError . TypeMismatch BoolTag =<< inferType closure
+-- TODO stub till Parsers have a type representation
+checkType closure ParserTag{} = throwError . TypeMismatch BoolTag =<< inferType closure
 
 
 inferType :: (MonadError TypeException m) => Closure -> m Type
@@ -127,9 +148,11 @@ inferType (_, FnT _ tag _) = pure tag
 
 builtins :: Env
 builtins = M.fromList [
-    (Name "<",   FnDefT (Name "<")  BoolTag [IntTag, IntTag])
-  , (Name ">",   FnDefT (Name ">")  BoolTag [IntTag, IntTag])
-  , (Name "==",  FnDefT (Name "==") BoolTag [IntTag, IntTag])
-  , (Name "<=",  FnDefT (Name "<=") BoolTag [IntTag, IntTag])
-  , (Name ">=",  FnDefT (Name ">=") BoolTag [IntTag, IntTag])
+    (Name "delim",    FnDefT (Name "delim")    (FnTag StringTag (FnTag (FnTag IntTag BoolTag) (FnTag (ListTag StringTag) ParserTag))))
+  , (Name "no_delim", FnDefT (Name "no_delim") (FnTag (FnTag IntTag BoolTag) (FnTag (ListTag StringTag) ParserTag)))
+  , (Name "<",  FnDefT (Name "<")  (FnTag IntTag (FnTag IntTag IntTag)))
+  , (Name ">",  FnDefT (Name ">")  (FnTag IntTag (FnTag IntTag IntTag)))
+  , (Name "==", FnDefT (Name "==") (FnTag IntTag (FnTag IntTag IntTag)))
+  , (Name "<=", FnDefT (Name "<=") (FnTag IntTag (FnTag IntTag IntTag)))
+  , (Name ">=", FnDefT (Name ">=") (FnTag IntTag (FnTag IntTag IntTag)))
   ]
