@@ -182,8 +182,8 @@ traceShow :: P.Show a => a -> a
 traceShow a = Debug.trace (P.show a) a
 
 {-# WARNING traceM "'traceM' remains in code" #-}
-traceM :: P.Monad m => P.String -> m ()
-traceM = Debug.traceM
+traceM :: P.Monad m => Text -> m ()
+traceM = Debug.traceM . T.unpack
 
 {-# WARNING traceIO "'traceIO' remains in code" #-}
 traceIO :: P.String -> P.IO ()
