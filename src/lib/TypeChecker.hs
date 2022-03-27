@@ -83,6 +83,7 @@ typecheck_ (ApplyU f e) = do
     (table, ft) <- typecheck_ f
     tf <- inferType (table, ft)
     (table, et) <- typecheck_ e
+    traceM ("**********" <> tshow ft <> " APPLIED TO " <> tshow et)
     te <- inferType (table, et)
     table <- ask
     case ft of 
@@ -145,11 +146,11 @@ inferType (_, FnT _ tag _) = pure tag
 
 builtins :: Env
 builtins = M.fromList [
-    (Name "delim",    FnDefT (Name "delim")    (FnTag StringTag (FnTag (FnTag IntTag BoolTag) (FnTag (ListTag StringTag) ParserTag))))
-  , (Name "no_delim", FnDefT (Name "no_delim") (FnTag (FnTag IntTag BoolTag) (FnTag (ListTag StringTag) ParserTag)))
-  , (Name "<",  FnDefT (Name "<")  (FnTag IntTag (FnTag IntTag IntTag)))
-  , (Name ">",  FnDefT (Name ">")  (FnTag IntTag (FnTag IntTag IntTag)))
-  , (Name "==", FnDefT (Name "==") (FnTag IntTag (FnTag IntTag IntTag)))
-  , (Name "<=", FnDefT (Name "<=") (FnTag IntTag (FnTag IntTag IntTag)))
-  , (Name ">=", FnDefT (Name ">=") (FnTag IntTag (FnTag IntTag IntTag)))
+    (Name "delim",    FnT (Name "delim")    (FnTag StringTag (FnTag (FnTag IntTag BoolTag) (FnTag (ListTag StringTag) ParserTag))) [])
+  , (Name "no_delim", FnT (Name "no_delim") (FnTag (FnTag IntTag BoolTag) (FnTag (ListTag StringTag) ParserTag)) [])
+  , (Name "<",  FnT (Name "<")  (FnTag IntTag (FnTag IntTag BoolTag)) [])
+  , (Name ">",  FnT (Name ">")  (FnTag IntTag (FnTag IntTag BoolTag)) [])
+  , (Name "==", FnT (Name "==") (FnTag IntTag (FnTag IntTag BoolTag)) [])
+  , (Name "<=", FnT (Name "<=") (FnTag IntTag (FnTag IntTag BoolTag)) [])
+  , (Name ">=", FnT (Name ">=") (FnTag IntTag (FnTag IntTag BoolTag)) [])
   ]

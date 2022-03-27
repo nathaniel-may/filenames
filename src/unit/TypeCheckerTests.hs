@@ -40,12 +40,11 @@ test5 = TestCase $ assertEqual
   (Right $ BoolT True)
   (typecheckFromRoot (BodyU [AssignmentU (Name "format") (BoolU True)]))
 
--- TODO add back once we have functions in ExprU again
--- test6 :: Test
--- test6 = TestCase $ assertEqual 
---   "fncall to builtin '<' typechecks" 
---   (Right $ FnT (Name "<") BoolTag [IntT 1, IntT 2])
---   (typecheck $ FnU (Name "<") [IntU 1, IntU 2])
+test6 :: Test
+test6 = TestCase $ assertEqual 
+  "non-partial application of builtin '<' typechecks" 
+  (Right $ FnT (Name "<") BoolTag [IntT 1, IntT 2])
+  (typecheck $ ApplyU (ApplyU (IdentifierU $ Name "<") (IntU 1)) (IntU 2))
 
 tests :: [Test]
-tests = [test1, test2, test3, test4, test5]
+tests = [test1, test2, test3, test4, test5, test6]

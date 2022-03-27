@@ -28,7 +28,7 @@ data ExprT
     | IntT Int
     | BoolT Bool
     | ListT Type [ExprT]
-    | FnDefT Name Type
+    | FnDefT Name Type -- TODO I think I can delete this. FnT replaces it.
     -- name of function, type of function, remaining param types, already applied values
     | FnT Name Type [ExprT]
     | ApplyT ExprT ExprT
@@ -40,7 +40,7 @@ data Type
     | IntTag
     | BoolTag
     | ListTag Type
-    -- param type, return type (e.g. \x -> (+x) is of type (FnTag Int (FnTag Int Int)))
+    -- param type, return type (e.g. \x -> (+x) is of type (FnTag IntTag (FnTag IntTag Int)))
     | FnTag Type Type
     -- constructed by builtins
     | ParserTag
