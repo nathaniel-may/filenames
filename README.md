@@ -15,13 +15,13 @@ format.txt:
 let d := "-"
 
 let format := with_delim d [
-    no_delim (x => x == 1) ["art", "photo"]
-  , delim d (x => x >= 0) ["nature", "architecture", "people"]
+    no_delim {== 1} ["art", "photo"]
+  , delim d {>= 0} ["nature", "architecture", "people"]
   , id
-  , no_delim (x => x >= 0) ["1", "2", "3", "4", "5", "6", "7", "8", "9"]
+  , no_delim {>= 0} ["1", "2", "3", "4", "5", "6", "7", "8", "9"]
   ]
 
-let id := no_delim (x => x == 6) id_chars
+let id := no_delim {== 6} id_chars
 
 // limited characters for example
 let id_chars := ["A", "B", "C", "D", "E", "F", "1", "2", "3"]
@@ -44,10 +44,10 @@ To run:
 formats are not all equally valid. Here is a a bad format: 
 
 ```
-format := with_no_delim [
-    no_delim (>=1) ["A", "B", "C"]
-  , no_delim (>=1) ["A", "B", "C"]
-  , no_delim (>=1) ["A", "B", "C"]
+let format := with_no_delim [
+    no_delim {>= 1} ["A", "B", "C"]
+  , no_delim {>= 1} ["A", "B", "C"]
+  , no_delim {>= 1} ["A", "B", "C"]
   ]
 ```
 
