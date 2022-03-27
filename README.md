@@ -5,7 +5,7 @@
 _work in progress_</br>
 This readme represents what the goal of this project is, not the current state.
 
-Filenames is a small DSL based on parser generators that lets you describe the format your filenames by composing simple parsers together. This tool then runs on your files to detect any files that do not conform to your format.
+Filenames is a small, effectless DSL based on parser generators that lets you describe the format of your filenames by composing simple parsers together. This tool then compiles your source to a native app that you can run on your filenames to detect any that do not conform to your format.
 
 ## Example
 
@@ -64,5 +64,6 @@ run tests with `make test`
 - add additional functions like histogram reporting
 - decide on strictly greedy parsing, or ambiguity detection
 - add non-local constraints like the ability to enforce uniqueness and that incrementing counters are consecutive. 
-- Have it work recursively across subdirectories. Would have to decide how non-local constraints like uniqueness and consequitive numbers interact with directory boundaries.
+- Have it work recursively across subdirectories. Would have to decide how non-local constraints like uniqueness and consequitive numbers interact with directory boundaries. Alternatively, require users to pipe strings to avoid file system interactions.
+- Generate local ui from source that allows for visually iterating through the files and constructing valid usernames with checkboxes. Boxes should be pre-checked if the filename is already valid for easy editing.
 - Migrate a directory from one naming scheme to another
