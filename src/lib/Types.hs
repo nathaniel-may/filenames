@@ -17,7 +17,7 @@ data ExprU
     | ListU [ExprU]
     | AssignmentU Name ExprU
     | IdentifierU Name
-    | FnCallU Name [ExprU]
+    | ApplyU ExprU ExprU
     deriving (Read, Show, Eq)
 
 data ExprT
@@ -27,7 +27,9 @@ data ExprT
     | BoolT Bool
     | ListT Type [ExprT]
     | FnDefT Name Type [Type]
-    | FnCallT Name Type [ExprT]
+    -- name of function, type of function, remaining param types, already applied values
+    | FnT Name Type [ExprT]
+    | ApplyT ExprT ExprT
     deriving (Read, Show, Eq)
 
 data Type
@@ -36,7 +38,8 @@ data Type
     | IntTag
     | BoolTag
     | ListTag Type
-    | FnTag Type [Type]
+    -- param type, return type (e.g. \x -> (+x) is of type (FnTag Int (FnTag Int Int)))
+    | FnTag Type Type
     deriving (Read, Show, Eq)
 
 type Env = Map Name ExprT
@@ -51,6 +54,4 @@ instance Display Type where
     display BoolTag = "bool"
     display (ListTag t) = "List[" <> display t <> "]"
     -- note: fns with no params are just values.
-    display (FnTag ret []) = display ret
-    display (FnTag ret params) = foldr (<>) "" symbols where
-        symbols = interleave (display <$> params) (repeat " -> ") <> [display ret]
+    display (FnTag p ret) = display p <> " -> " <> display ret

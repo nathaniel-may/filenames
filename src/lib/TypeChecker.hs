@@ -1,11 +1,12 @@
 {-# LANGUAGE GADTs, FlexibleContexts, TupleSections #-}
+{-# OPTIONS_GHC -Wno-name-shadowing #-}
 
 module TypeChecker where
 
 import           Control.Monad.Except -- import all
 import           Control.Monad.Reader -- import all
 import           CustomPrelude        -- import all
-import qualified Data.Map as M
+import qualified Data.Map             as M
 import           Exceptions           (TypeException(..))
 import           Types                -- import all
 
@@ -64,24 +65,21 @@ typecheck_ (IdentifierU name) = do
     table <- ask
     maybe (throwError $ NoValueNamed name) (pure . (table,)) (M.lookup name table)
 
-typecheck_ (FnCallU name params) = do
+typecheck_ (ApplyU f e) = do
+    (table, ft) <- typecheck_ f
+    tf <- inferType (table, ft)
+    (table, et) <- typecheck_ e
+    te <- inferType (table, et)
     table <- ask
-    exprt <- maybe (throwError $ NoValueNamed name) pure (M.lookup name table)
-    case exprt of
-        (FnDefT _ ret' params') -> do
-            -- throws away the tables from param typechecking
-            -- no additional definitions should be added there
-            checked <- traverse typecheck_ params
-            inferred <- traverse inferType checked
-            let mismatches = filter (uncurry (/=)) (params' `zip` inferred)
-            let (_, checkedExprs) = unzip checked
-            case mismatches of
-                [] -> pure (table, FnCallT name ret' checkedExprs)
-                ((expected, got) : _) -> throwError $ TypeMismatchFnParam name expected got
-        got -> throwError . NotAFunction name =<< inferType (table, got)
+    case ft of 
+        (FnT name (FnTag p ret) applied) -> 
+            if p /= te
+            then throwError $ TypeMismatch p te
+            else pure (table, FnT name ret (applied <> [et])) -- TODO should I reverse this order instead?
+        _ -> throwError $ CannotApplyNotAFunction tf te
 
 
-checkType :: (MonadReader Env m, MonadError TypeException m) => Closure -> Type -> m ()
+checkType :: (MonadError TypeException m) => Closure -> Type -> m ()
 checkType (_, UnitT) UnitTag = pure ()
 checkType closure UnitTag = throwError . TypeMismatch UnitTag =<< inferType closure
 checkType (_, StringT _) StringTag = pure ()
@@ -95,27 +93,36 @@ checkType (table, ListT t' xs) expected@(ListTag t) =
     then throwError $ TypeMismatch expected (ListTag t')
     else traverse_ (\x -> checkType (table, x) t) xs
 checkType closure expected@(ListTag _) = throwError . TypeMismatch expected =<< inferType closure
-checkType (table, FnCallT name ret' params') (FnTag ret params) = do
-    if ret /= ret' then throwError $ TypeMismatchFnReturn name ret ret' else pure ()
-    let lparams = length params
-    let lparams' = length params'
-    if' (lparams /= lparams') (throwError $ TypeMismatchNumFnParams name lparams lparams') (pure ())
-    inferred <- traverse (curry inferType table) params'
-    let mismatches = filter (uncurry (/=)) (params `zip` inferred)
-    case mismatches of
-        [] -> pure ()
-        ((expected, got) : _) -> throwError $ TypeMismatchFnParam name expected got
+checkType (table, ApplyT f e) expected = do
+    te <- inferType (table, e)
+    tf <- inferType (table, f)
+    case tf of
+        (FnTag _ ret) ->
+            if ret /= expected
+            then throwError $ TypeMismatch expected ret
+            else pure ()
+        nonfn -> throwError $ CannotApplyNotAFunction nonfn te
 checkType closure FnTag{} = throwError . TypeMismatch BoolTag =<< inferType closure
 
 
-inferType :: (MonadReader Env m, MonadError TypeException m) => Closure -> m Type
+inferType :: (MonadError TypeException m) => Closure -> m Type
 inferType (_, UnitT) = pure UnitTag
 inferType (_, StringT _) = pure StringTag
 inferType (_, IntT _) = pure IntTag
 inferType (_, BoolT _) = pure BoolTag
-inferType closure@(_, ListT tag _) = checkType closure (ListTag tag) $> ListTag tag
-inferType (table, FnCallT _ ret params) = FnTag ret <$> traverse (curry inferType table) params
+inferType closure@(table, ListT tag _) = runReaderT (checkType closure (ListTag tag)) table $> ListTag tag
+inferType (table, ApplyT f e) = do
+    tf <- inferType (table, f)
+    te <- inferType (table, e)
+    case tf of
+        (FnTag p ret) -> 
+            if p /= te
+            then throwError $ TypeMismatch p te
+            else pure ret
+        _ -> throwError $ CannotApplyNotAFunction tf te
 inferType (_, FnDefT{}) = pure UnitTag
+-- TODO I'm just blindly believing it's right here. is that ok?
+inferType (_, FnT _ tag _) = pure tag
 
 
 builtins :: Env

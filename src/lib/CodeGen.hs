@@ -15,7 +15,8 @@ toHVal (IntT i) = tshow i -- TODO this is not right
 toHVal (BoolT b) = tshow b -- TODO this is not right
 toHVal (ListT _ xs) = tshow $ toHVal <$> xs
 toHVal FnDefT{} = "" -- TODO stub
-toHVal FnCallT{} = "" -- TODO stub
+toHVal FnT{} = "" -- TODO stub
+toHVal ApplyT{} = "" -- TODO stub
 
 -- header just prints the value as the main operation
 header :: Text

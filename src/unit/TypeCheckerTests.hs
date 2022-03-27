@@ -28,11 +28,12 @@ test3 = TestCase $ assertEqual
   (Right $ ListT StringTag [StringT "hello", StringT "world"])
   (typecheck (ListU [StringU "hello", StringU "world"]))
 
-test4 :: Test
-test4 = TestCase $ assertEqual 
-  "fncall to builtin '<' typechecks" 
-  (Right $ FnCallT (Name "<") BoolTag [IntT 1, IntT 2])
-  (typecheck $ FnCallU (Name "<") [IntU 1, IntU 2])
+-- TODO add back once we have functions in ExprU again
+-- test4 :: Test
+-- test4 = TestCase $ assertEqual 
+--   "fncall to builtin '<' typechecks" 
+--   (Right $ FnT (Name "<") BoolTag [IntT 1, IntT 2])
+--   (typecheck $ FnU (Name "<") [IntU 1, IntU 2])
 
 tests :: [Test]
-tests = [test1, test2, test3, test4]
+tests = [test1, test2, test3]
