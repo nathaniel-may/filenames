@@ -41,7 +41,7 @@ stringLiteral :: Parser ExprU
 stringLiteral = StringU . T.pack <$> (char '\"' *> manyTill L.charLiteral (char '\"'))
 
 list :: Parser ExprU
-list = ListU <$> brackets (sepBy expr (symbol ","))
+list = ListU <$> brackets (sepBy (lexeme expr) (symbol ","))
 
 intLiteral :: Parser ExprU
 intLiteral = IntU . read <$> some digitChar

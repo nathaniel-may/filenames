@@ -73,5 +73,15 @@ test7 = TestCase $ assertEqual'
   (Right $ BodyU [ApplyU (ApplyU (IntU 1) (InfixIdentifierU (Name "<"))) (IntU 2)])
   (parse "{1 < 2}")
 
+test8 :: Test
+test8 = TestCase $ assertEqual' 
+  "parses an multiline list"
+  (Right . BodyU $ [
+    AssignmentU 
+      (Name "boop")
+      (ListU [IntU 1, IntU 2, IntU 3])
+  ])
+  (parse "let boop := [\n  1,\n  2,\n  3\n]")
+
 tests :: [Test]
-tests = [test1, test2, test3, test4, test5, test6, test7]
+tests = [test1, test2, test3, test4, test5, test6, test7, test8]
