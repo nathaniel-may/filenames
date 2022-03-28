@@ -50,7 +50,12 @@ typecheck_ (BodyU exprs) = do
                     ((\(_, x) -> M.insert name x t) <$> typecheck_ expr)
                     (const . throwError $ MultipleAssignmentsWithName name)
                     (M.lookup name t)
-            _ -> error "unreachable" -- TODO bad form
+            -- this should never be reached because we just checked above
+            expr -> do
+                t <- mt
+                (_, exprt) <- typecheck_ expr
+                got <- inferType (t, exprt)
+                throwError $ UnexpectedValue got
         ) (pure table) assignments
     (_, ret) <- case ret of -- explicitly ignoring the resulitng table because this is not an assignment
         [] -> pure (table, UnitT) -- assignments are of type unit.

@@ -26,6 +26,7 @@ data TypeException
     | CannotApplyNotAFunction Type Type
     | BadPartialApplication Type
     | MultipleAssignmentsWithName Name
+    | UnexpectedValue Type -- TODO kind of a cheap exception
     deriving (Read, Show, Eq)
 
 data RuntimeException
@@ -58,6 +59,7 @@ instance Display TypeException where
     display (CannotApplyNotAFunction nonfn applied) = "CannotApplyNotAFunction: value of type " <> display nonfn <> " is not a function. Cannot apply a value of type " <> display applied <> " to it."
     display (BadPartialApplication name) = "BadPartialApplication: attempted to flip the order of parameters for a value of type " <> display name <> ", but it does not take at least two parameters."
     display (MultipleAssignmentsWithName name) = "MultipleAssignmentsWithName: There already exists a value with the name " <> display name <> "."
+    display (UnexpectedValue got) = "UnexpectedValue: Unexpected value of type " <> display got <> "."
 
 instance Display RuntimeException where
     display Boop100 = "RuntimeException"
