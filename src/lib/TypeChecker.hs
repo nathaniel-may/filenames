@@ -6,6 +6,7 @@ module TypeChecker where
 import           Control.Monad.Except -- import all
 import           Control.Monad.Reader -- import all
 import           CustomPrelude        -- import all
+import           Data.List            (span)
 import qualified Data.Map             as M
 import           Exceptions           (TypeException(..))
 import           Types                -- import all
@@ -35,25 +36,33 @@ typecheck_ :: (MonadReader Env m, MonadError TypeException m) => ExprU -> m Clos
 -- nothing in source file
 typecheck_ (BodyU []) = throwError EmptyBody
 
+-- TODO order of assignments matter. Forces highest level to be at the bottom of body.
 typecheck_ (BodyU exprs) = do
     table <- ask
-    let assignmentNames = (\case {AssignmentU name _ -> [name]; _ -> []}) =<< exprs
-    let names = M.keys table
-    -- check for duplicate names
-    _ <- foldr (\n mns -> do
-            ns <- mns
-            if n `elem` ns then throwError $ MultipleAssignmentsWithName n else pure (n : ns)
-        ) (pure names) assignmentNames
-    closures <- traverse typecheck_ exprs
-    let (tables, types) = unzip closures
-    let nonUnitClosures = takeWhile (/=UnitT) types
-    -- all top-level definitions must be assignments. Should be enforced here, not at parse time.
-    finalExprt <- case nonUnitClosures of
-        [] -> pure UnitT  -- expected at the top level but nowhere else really (TODO make special case ala BodyU True for root?)
-        [return] -> pure return
-        unassigned -> throwError . MultipleUnassignedValuesInBody =<< traverse (curry inferType table) unassigned
-    let finalTable = foldr M.union table tables
-    pure (finalTable, finalExprt)
+    -- assignments first, at most one return value after.
+    let (assignments, ret) = span (\case AssignmentU{} -> True; _ -> False) exprs
+    -- evaluate one at a time so the table can be updated between the typechecking of each expr
+    table <- foldr (\e mt ->
+        case e of
+            (AssignmentU name expr) -> do
+                t <- mt
+                maybe 
+                    ((\(_, x) -> M.insert name x t) <$> typecheck_ expr)
+                    (const . throwError $ MultipleAssignmentsWithName name)
+                    (M.lookup name t)
+            _ -> error "unreachable" -- TODO bad form
+        ) (pure table) assignments
+    (_, ret) <- case ret of -- explicitly ignoring the resulitng table because this is not an assignment
+        [] -> pure (table, UnitT) -- assignments are of type unit.
+        [return] -> typecheck_ return
+        -- TODO this could still have assignments in it after a non assignment. error would be awkward in that case.
+        -- there are more than one unassigned values in the body. error.
+        unassigned -> do
+            -- typecheck for more meaningful errors
+            closures <- traverse typecheck_ unassigned
+            let (_, exprs) = unzip closures
+            throwError . MultipleUnassignedValuesInBody =<< traverse (curry inferType table) exprs
+    pure (table, ret)
 
 typecheck_ (StringU s) =
     asks (, StringT s)
