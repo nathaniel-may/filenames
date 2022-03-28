@@ -17,6 +17,7 @@ typecheckFromRoot body@(BodyU assignments) = do
     case nonAssignment of
         [] -> pure ()
         _ -> throwError TopLevelNotAssignment
+    -- TODO could warn/error on dead code here
     (table, _) <- runReaderT (typecheck_ body) builtins
     -- program root is defined by top-level assignment to value "format"
     case M.lookup (Name "format") table of
@@ -35,16 +36,22 @@ typecheck_ :: (MonadReader Env m, MonadError TypeException m) => ExprU -> m Clos
 typecheck_ (BodyU []) = throwError EmptyBody
 
 typecheck_ (BodyU exprs) = do
-    closures <- traverse typecheck_ exprs
-    let (_, types) = unzip closures
-    let nonUnitClosures = takeWhile (/=UnitT) types
     table <- ask
+    let assignmentNames = (\case {AssignmentU name _ -> [name]; _ -> []}) =<< exprs
+    let names = M.keys table
+    -- check for duplicate names
+    _ <- foldr (\n mns -> do
+            ns <- mns
+            if n `elem` ns then throwError $ MultipleAssignmentsWithName n else pure (n : ns)
+        ) (pure names) assignmentNames
+    closures <- traverse typecheck_ exprs
+    let (tables, types) = unzip closures
+    let nonUnitClosures = takeWhile (/=UnitT) types
     -- all top-level definitions must be assignments. Should be enforced here, not at parse time.
     finalExprt <- case nonUnitClosures of
         [] -> pure UnitT  -- expected at the top level but nowhere else really (TODO make special case ala BodyU True for root?)
         [return] -> pure return
         unassigned -> throwError . MultipleUnassignedValuesInBody =<< traverse (curry inferType table) unassigned
-    let (tables, _) = unzip closures
     let finalTable = foldr M.union table tables
     pure (finalTable, finalExprt)
 
@@ -72,8 +79,10 @@ typecheck_ (ListU elems@(x : _)) = do
 
 typecheck_ (AssignmentU name v) = do
     (table2, exprt) <- typecheck_ v
-    -- TODO this overwrites assignments. should check if it exists first
-    pure (M.insert name exprt table2, UnitT)
+    -- check if a value is already using this identifier before inserting it
+    case M.lookup name table2 of
+        (Just _) -> throwError $ MultipleAssignmentsWithName name
+        Nothing -> pure (M.insert name exprt table2, UnitT)
 
 typecheck_ (IdentifierU name) = do
     table <- ask
