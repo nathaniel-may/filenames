@@ -59,7 +59,6 @@ test8 = TestCase $ assertEqual
   (Right $ ApplyT (FlipT (FnT (Name "<") (FnTag IntTag (FnTag IntTag BoolTag)) [])) (IntT 100))
   (typecheck $ ApplyU (InfixIdentifierU $ Name "<") (IntU 100))
 
--- TODO gotta handle scopes by handling tables properly.
 test9 :: Test
 test9 = TestCase $ assertEqual 
   "multiple assignment with the same identifier at the same level fails to typecheck" 
@@ -72,5 +71,11 @@ test10 = TestCase $ assertEqual
   (Left . MultipleAssignmentsWithName $ Name "delim")
   (typecheckFromRoot $ BodyU [AssignmentU (Name "format") (BoolU True), AssignmentU (Name "delim") (IntU 1)])
 
+test11 :: Test
+test11 = TestCase $ assertEqual 
+  "top level variables can reference each other" 
+  (Right UnitT)
+  (typecheck $ BodyU [AssignmentU (Name "boooop2") (IntU 1), AssignmentU (Name "boooop") (IdentifierU (Name "boooop2"))])
+
 tests :: [Test]
-tests = [test1, test2, test3, test4, test5, test6, test7, test8, test9, test10]
+tests = [test1, test2, test3, test4, test5, test6, test7, test8, test9, test10, test11]

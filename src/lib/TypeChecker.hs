@@ -33,31 +33,35 @@ typecheck x = snd <$> runReaderT (typecheck_ x) builtins
 
 
 typecheck_ :: (MonadReader Env m, MonadError TypeException m) => ExprU -> m Closure
--- nothing in source file
-typecheck_ (BodyU []) = throwError EmptyBody
-
 -- TODO order of assignments matter. Forces highest level to be at the bottom of body.
 typecheck_ (BodyU exprs) = do
     table <- ask
     -- assignments first, at most one return value after.
     let (assignments, ret) = span (\case AssignmentU{} -> True; _ -> False) exprs
-    -- evaluate one at a time so the table can be updated between the typechecking of each expr
-    table <- foldr (\e mt ->
-        case e of
-            (AssignmentU name expr) -> do
-                t <- mt
-                maybe 
-                    ((\(_, x) -> M.insert name x t) <$> typecheck_ expr)
-                    (const . throwError $ MultipleAssignmentsWithName name)
-                    (M.lookup name t)
-            -- this should never be reached because we just checked above
-            expr -> do
-                t <- mt
-                (_, exprt) <- typecheck_ expr
-                got <- inferType (t, exprt)
-                throwError $ UnexpectedValue got
-        ) (pure table) assignments
-    (_, ret) <- case ret of -- explicitly ignoring the resulitng table because this is not an assignment
+    -- recursively evaluate one at a time so the table can be updated between the typechecking of each expr
+    table <- case assignments of
+        [] -> pure table
+        (x : xs) -> do 
+            (t, _) <- typecheck_ x
+            (t, _) <- M.union t `local` typecheck_ (BodyU xs)
+            pure t
+
+    -- table <- foldr (\e mt ->
+    --     case e of
+    --         (AssignmentU name expr) -> do
+    --             t <- mt
+    --             maybe
+    --                 ((\(_, x) -> M.insert name x t) <$> typecheck_ expr)
+    --                 (const . throwError $ MultipleAssignmentsWithName name)
+    --                 (M.lookup name t)
+    --         -- this should never be reached because we just checked above
+    --         expr -> do
+    --             t <- mt
+    --             (_, exprt) <- typecheck_ expr
+    --             got <- inferType (t, exprt)
+    --             throwError $ UnexpectedValue got
+    --     ) (pure table) assignments
+    (_, ret) <- case ret of -- explicitly ignoring the resulting table because this is not an assignment
         [] -> pure (table, UnitT) -- assignments are of type unit.
         [return] -> typecheck_ return
         -- TODO this could still have assignments in it after a non assignment. error would be awkward in that case.
@@ -123,11 +127,14 @@ typecheck_ (ApplyU f e) = do
     (table, et) <- typecheck_ e
     te <- inferType (table, et)
     table <- ask
-    case ft of 
+    case ft of
         (FnT name (FnTag p ret) applied) -> 
             if p /= te
             then throwError $ TypeMismatch p te
             else pure (table, FnT name ret (applied <> [et])) -- TODO should I reverse this order instead?
+        -- inner value has already been checked by the above case ^^
+        x@FlipT{} -> pure (table, x)
+        x@ApplyT{} -> pure (table, x)
         _ -> throwError $ CannotApplyNotAFunction tf te
 
 

@@ -22,9 +22,9 @@ toHVal (FnT (Name "=")  _ (x : y : _)) = "(" <> toHVal x <> " == " <> toHVal y <
 toHVal (FnT (Name "==") _ (x : y : _)) = "(" <> toHVal x <> " == " <> toHVal y <> ")"
 toHVal (FnT (Name "<=") _ (x : y : _)) = "(" <> toHVal x <> " <= " <> toHVal y <> ")"
 toHVal (FnT (Name ">=") _ (x : y : _)) = "(" <> toHVal x <> " >= " <> toHVal y <> ")"
-toHVal (FnT (Name _) _ _) = "" -- Nothing should reach here if the typechecker is working. TODO should this have an error value? should I model builtins differently?
-toHVal ApplyT{} = "" -- TODO stub
-toHVal (FlipT f) = "flip " <> toHVal f
+toHVal (FnT name _ params) = error $ "BOOM: " <> display name <> " APPLIED TO" <> tshow params  -- Nothing should reach here if the typechecker is working. TODO should this have an error value? should I model builtins differently?
+toHVal (ApplyT x y) = "(" <> toHVal x <> " " <> toHVal y <> ")"
+toHVal (FlipT f) = "(flip " <> toHVal f <> ")"
 
 -- header just prints the value as the main operation
 header :: Text

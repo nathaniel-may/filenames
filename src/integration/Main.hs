@@ -72,10 +72,21 @@ test1 sourcePath = do
         "True\n"
         output 
 
+test2 :: FilePath -> IO Test
+test2 sourcePath = do
+    e <- runProgram (SourceFile sourcePath "let boop := {> 2}\nlet format := {boop 20}")
+    output <- case e of
+        (Left err) -> pure (display err)
+        (Right stdout) -> stdout
+    pure . TestCase $ assertEqual 
+        "flipped partial application runs" 
+        "True\n"
+        output 
+
 -- top-level value for all tests
 testsIO :: IO [Test]
 testsIO = do 
     callCommand $ T.unpack $ "mkdir -p " <> targetDir
     -- add new tests here vv
-    let allTests = [test0, test1]
+    let allTests = [test0, test1, test2]
     zipWithM ($) allTests uniqueFilepaths
