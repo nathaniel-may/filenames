@@ -22,6 +22,7 @@ library
                       ,CodeGen
                       ,Cli
                       ,Exceptions
+                      ,Optimizer
                       ,Parsers
                       ,Runtime
                       ,TypeChecker

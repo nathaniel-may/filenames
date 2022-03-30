@@ -4,6 +4,7 @@ import           CodeGen               (gen)
 import           CustomPrelude         -- import all
 import qualified Data.Text             as T
 import           Exceptions            (CompilationException(..))
+import           Optimizer             (optimize)
 import           Options.Applicative   -- import all
 import           Parsers               (parse)
 import           System.IO             (readFile, writeFile)
@@ -39,7 +40,7 @@ compile :: Text -> Either CompilationException Text
 compile source = do
     parsed <- mapLeft ParseErr (parse source)
     checked <- mapLeft TypeErr (typecheckFromRoot parsed)
-    pure (gen checked)
+    pure . gen . optimize $ checked
 
 -- writes codegen string to a file and runs system ghc on it
 ghcCompile :: FilePath -> Text -> IO ()
