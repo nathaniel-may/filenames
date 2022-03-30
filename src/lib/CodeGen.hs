@@ -22,7 +22,7 @@ toHVal (FnO (Name "=")  (x : y : _)) = "(" <> toHVal x <> " == " <> toHVal y <> 
 toHVal (FnO (Name "==") (x : y : _)) = "(" <> toHVal x <> " == " <> toHVal y <> ")"
 toHVal (FnO (Name "<=") (x : y : _)) = "(" <> toHVal x <> " <= " <> toHVal y <> ")"
 toHVal (FnO (Name ">=") (x : y : _)) = "(" <> toHVal x <> " >= " <> toHVal y <> ")"
-toHVal (FnO name params) = toHVal UnitO -- Nothing should reach here if the typechecker is working. TODO should this have an error value? should I model builtins differently?
+toHVal FnO{} = toHVal UnitO -- Nothing should reach here if the typechecker is working. TODO should this have an error value? should I model builtins differently?
 
 -- header just prints the value as the main operation
 header :: Text
