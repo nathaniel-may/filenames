@@ -73,9 +73,15 @@ test10 = TestCase $ assertEqual
 
 test11 :: Test
 test11 = TestCase $ assertEqual 
-  "top level variables can reference each other" 
+  "top level values can reference each other" 
   (Right UnitT)
-  (typecheck $ BodyU [AssignmentU (Name "boooop2") (IntU 1), AssignmentU (Name "boooop") (IdentifierU (Name "boooop2"))])
+  (typecheck $ BodyU [AssignmentU (Name "boop2") (IntU 1), AssignmentU (Name "boop") (IdentifierU (Name "boop2"))])
+
+test12 :: Test
+test12 = TestCase $ assertEqual 
+  "function calls nest properly" 
+  (Right $ ApplyT (ApplyT (FlipT (FnT (Name ">") (FnTag IntTag (FnTag IntTag BoolTag)) [])) (IntT 2)) (IntT 20))
+  (typecheckFromRoot $ BodyU [AssignmentU (Name "boop") (ApplyU (InfixIdentifierU (Name ">")) (IntU 2)),AssignmentU (Name "format") (ApplyU (IdentifierU (Name "boop")) (IntU 20))])
 
 tests :: [Test]
-tests = [test1, test2, test3, test4, test5, test6, test7, test8, test9, test10, test11]
+tests = [test1, test2, test3, test4, test5, test6, test7, test8, test9, test10, test11, test12]

@@ -12,17 +12,17 @@ gen ast = header <> "(" <> toHVal ast <> ")"
 toHVal :: ExprO -> Text
 toHVal UnitO = "()"
 toHVal (StringO s) = "\"" <> s <> "\""
-toHVal (IntO i) = tshow i
-toHVal (BoolO b) = tshow b
-toHVal (ListO _ xs) = "[" <> elems <> "]" where
+toHVal (IntO x) = tshow x
+toHVal (BoolO x) = tshow x
+toHVal (ListO xs) = "[" <> elems <> "]" where
     elems = T.dropEnd 1 (foldr (\x y -> x <> "," <> y) "" (toHVal <$> xs))
-toHVal (FnO (Name "<") _ (x : y : _)) = "(" <> toHVal x <> " < " <> toHVal y <> ")"
-toHVal (FnO (Name ">") _ (x : y : _)) = "(" <> toHVal x <> " > " <> toHVal y <> ")"
-toHVal (FnO (Name "=")  _ (x : y : _)) = "(" <> toHVal x <> " == " <> toHVal y <> ")"
-toHVal (FnO (Name "==") _ (x : y : _)) = "(" <> toHVal x <> " == " <> toHVal y <> ")"
-toHVal (FnO (Name "<=") _ (x : y : _)) = "(" <> toHVal x <> " <= " <> toHVal y <> ")"
-toHVal (FnO (Name ">=") _ (x : y : _)) = "(" <> toHVal x <> " >= " <> toHVal y <> ")"
-toHVal (FnO name _ params) = error $ "BOOM: " <> display name <> " APPLIED TO" <> tshow params  -- Nothing should reach here if the typechecker is working. TODO should this have an error value? should I model builtins differently?
+toHVal (FnO (Name "<") (x : y : _)) = "(" <> toHVal x <> " < " <> toHVal y <> ")"
+toHVal (FnO (Name ">") (x : y : _)) = "(" <> toHVal x <> " > " <> toHVal y <> ")"
+toHVal (FnO (Name "=")  (x : y : _)) = "(" <> toHVal x <> " == " <> toHVal y <> ")"
+toHVal (FnO (Name "==") (x : y : _)) = "(" <> toHVal x <> " == " <> toHVal y <> ")"
+toHVal (FnO (Name "<=") (x : y : _)) = "(" <> toHVal x <> " <= " <> toHVal y <> ")"
+toHVal (FnO (Name ">=") (x : y : _)) = "(" <> toHVal x <> " >= " <> toHVal y <> ")"
+toHVal (FnO name params) = toHVal UnitO -- Nothing should reach here if the typechecker is working. TODO should this have an error value? should I model builtins differently?
 
 -- header just prints the value as the main operation
 header :: Text

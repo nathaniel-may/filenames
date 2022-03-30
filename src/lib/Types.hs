@@ -41,9 +41,9 @@ data ExprO
     | StringO Text
     | IntO Int
     | BoolO Bool
-    | ListO Type [ExprO]
+    | ListO [ExprO]
     -- name of function, type of function, remaining param types, already applied values
-    | FnO Name Type [ExprO]
+    | FnO Name [ExprO]
     deriving (Read, Show, Eq)
 
 data Type

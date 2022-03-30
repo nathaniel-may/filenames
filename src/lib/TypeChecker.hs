@@ -45,22 +45,6 @@ typecheck_ (BodyU exprs) = do
             (t, _) <- typecheck_ x
             (t, _) <- M.union t `local` typecheck_ (BodyU xs)
             pure t
-
-    -- table <- foldr (\e mt ->
-    --     case e of
-    --         (AssignmentU name expr) -> do
-    --             t <- mt
-    --             maybe
-    --                 ((\(_, x) -> M.insert name x t) <$> typecheck_ expr)
-    --                 (const . throwError $ MultipleAssignmentsWithName name)
-    --                 (M.lookup name t)
-    --         -- this should never be reached because we just checked above
-    --         expr -> do
-    --             t <- mt
-    --             (_, exprt) <- typecheck_ expr
-    --             got <- inferType (t, exprt)
-    --             throwError $ UnexpectedValue got
-    --     ) (pure table) assignments
     (_, ret) <- case ret of -- explicitly ignoring the resulting table because this is not an assignment
         [] -> pure (table, UnitT) -- assignments are of type unit.
         [return] -> typecheck_ return
@@ -133,8 +117,8 @@ typecheck_ (ApplyU f e) = do
             then throwError $ TypeMismatch p te
             else pure (table, FnT name ret (applied <> [et])) -- TODO should I reverse this order instead?
         -- inner value has already been checked by the above case ^^
-        x@FlipT{} -> pure (table, x)
-        x@ApplyT{} -> pure (table, x)
+        x@FlipT{} -> pure (table, ApplyT x et)
+        x@ApplyT{} -> pure (table, ApplyT x et)
         _ -> throwError $ CannotApplyNotAFunction tf te
 
 

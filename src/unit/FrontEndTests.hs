@@ -48,5 +48,11 @@ test4 = TestCase $ assertEqual'
   (Right $ ApplyT (FlipT (FnT (Name ">=") (FnTag IntTag (FnTag IntTag BoolTag)) [])) (IntT 3))
   (parseNTypecheck "let format := {>= 3}")
 
+test5 :: Test
+test5 = TestCase $ assertEqual' 
+  "application"
+  (Right $ ApplyT(ApplyT (FlipT (FnT (Name ">") (FnTag IntTag (FnTag IntTag BoolTag)) [])) (IntT 2)) (IntT 20) )
+  (parseNTypecheck "let boop := {> 2}\nlet format := {boop 20}")
+
 tests :: [Test]
-tests = [test1, test2, test3, test4]
+tests = [test1, test2, test3, test4, test5]
