@@ -1,5 +1,3 @@
-{-# LANGUAGE BangPatterns #-}
-
 module Optimizer where
 
 import CustomPrelude -- import all
