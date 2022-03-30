@@ -201,7 +201,7 @@ builtins = M.fromList [
   , (Name "no_delim", FnT (Name "no_delim") (FnTag (FnTag IntTag BoolTag) (FnTag (ListTag StringTag) ParserTag)) [])
   , (Name "<",  FnT (Name "<")  (FnTag IntTag (FnTag IntTag BoolTag)) [])
   , (Name ">",  FnT (Name ">")  (FnTag IntTag (FnTag IntTag BoolTag)) [])
-  , (Name "==", FnT (Name "=")  (FnTag IntTag (FnTag IntTag BoolTag)) [])
+  , (Name "=",  FnT (Name "=")  (FnTag IntTag (FnTag IntTag BoolTag)) [])
   , (Name "==", FnT (Name "==") (FnTag IntTag (FnTag IntTag BoolTag)) [])
   , (Name "<=", FnT (Name "<=") (FnTag IntTag (FnTag IntTag BoolTag)) [])
   , (Name ">=", FnT (Name ">=") (FnTag IntTag (FnTag IntTag BoolTag)) [])

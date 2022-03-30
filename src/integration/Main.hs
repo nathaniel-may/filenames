@@ -50,8 +50,8 @@ runProgram (SourceFile sourcePath source) = do
             let result = T.pack (stderr' <|> stdout')
             pure . pure . pure $ result
 
-test1 :: FilePath -> IO Test
-test1 sourcePath = do
+test0 :: FilePath -> IO Test
+test0 sourcePath = do
     e <- runProgram (SourceFile sourcePath "let format := [\"a\", \"b\", \"c\"]")
     output <- case e of
         (Left err) -> pure (display err)
@@ -61,10 +61,21 @@ test1 sourcePath = do
         "[\"a\",\"b\",\"c\"]\n"
         output
 
+test1 :: FilePath -> IO Test
+test1 sourcePath = do
+    e <- runProgram (SourceFile sourcePath "let format := {1 < 10}")
+    output <- case e of
+        (Left err) -> pure (display err)
+        (Right stdout) -> stdout
+    pure . TestCase $ assertEqual 
+        "less than statements run" 
+        "True\n"
+        output 
+
 -- top-level value for all tests
 testsIO :: IO [Test]
 testsIO = do 
     callCommand $ T.unpack $ "mkdir -p " <> targetDir
     -- add new tests here vv
-    let allTests = [test1]
+    let allTests = [test0, test1]
     zipWithM ($) allTests uniqueFilepaths

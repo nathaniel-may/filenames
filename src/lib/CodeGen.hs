@@ -6,7 +6,7 @@ import           Types         -- import all
 
 
 gen :: ExprT -> Text
-gen ast = header <> toHVal ast
+gen ast = header <> "(" <> toHVal ast <> ")"
 
 -- TODO maybe codegen can operate on a post-opimized datatype that doesn't include some of these things.
 toHVal :: ExprT -> Text
@@ -16,7 +16,13 @@ toHVal (IntT i) = tshow i
 toHVal (BoolT b) = tshow b
 toHVal (ListT _ xs) = "[" <> elems <> "]" where
     elems = T.dropEnd 1 (foldr (\x y -> x <> "," <> y) "" (toHVal <$> xs))
-toHVal FnT{} = "" -- TODO stub
+toHVal (FnT (Name "<") _ (x : y : _)) = "(" <> toHVal x <> " < " <> toHVal y <> ")"
+toHVal (FnT (Name ">") _ (x : y : _)) = "(" <> toHVal x <> " > " <> toHVal y <> ")"
+toHVal (FnT (Name "=")  _ (x : y : _)) = "(" <> toHVal x <> " == " <> toHVal y <> ")"
+toHVal (FnT (Name "==") _ (x : y : _)) = "(" <> toHVal x <> " == " <> toHVal y <> ")"
+toHVal (FnT (Name "<=") _ (x : y : _)) = "(" <> toHVal x <> " <= " <> toHVal y <> ")"
+toHVal (FnT (Name ">=") _ (x : y : _)) = "(" <> toHVal x <> " >= " <> toHVal y <> ")"
+toHVal (FnT (Name _) _ _) = "" -- Nothing should reach here if the typechecker is working. TODO should this have an error value? should I model builtins differently?
 toHVal ApplyT{} = "" -- TODO stub
 toHVal (FlipT f) = "flip " <> toHVal f
 
