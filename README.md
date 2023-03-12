@@ -5,53 +5,40 @@
 _work in progress_</br>
 This readme represents what the goal of this project is, not the current state.
 
-Filenames is a small, effectless DSL based on parser generators that lets you describe the format of your filenames by composing simple parsers together. This tool then compiles your source to a native app that you can run on your filenames to detect any that do not conform to your format.
+Filenames is a small, pure DSL that lets you describe the format of your filenames by composing simple parsers together. This tool then compiles your source to a native app that you can run on your filenames to detect any that do not conform to your format, and explore the ones that do.
 
 ## Example
 
-format.txt:
+schema.txt:
 
 ```
-let d := "-"
-
-let format := with_delim d [
-    no_delim {== 1} ["art", "photo"]
-  , delim d {>= 0} ["nature", "architecture", "people"]
-  , id
-  , no_delim {>= 0} ["1", "2", "3", "4", "5", "6", "7", "8", "9"]
-  ]
-
-let id := no_delim {== 6} id_chars
-
-// limited characters for example
-let id_chars := ["A", "B", "C", "D", "E", "F", "1", "2", "3"]
+Schema
+    "-"
+    [ Part "Id" [] [unique]
+    , Part "Medium" ["art", "photo"]
+    , Part "Source" [] [optional]
+    , Part "Tags" ["architecture"] [optional]
+    , Part "Tags" ["nature"] [optional]
+    , Part "Tags" ["person"] [optional]
+    ]
 ```
 
 To run:
-`filenames format.txt ./my-files/`
+```
+> filenames schema.txt
+> ./schema
+```
 
 | Filenames                    | Match |
 |------------------------------|-------|
-| art-people-ABCDEF            | ✅    |
-| art-nature-people-ABC123-001 | ✅    |
-| photo-architecture-AAAAAA-99 | ✅    |
+| ABC-art-people               | ✅    |
+| ABC-art-someusername-people  | ✅    |
+| ABC123001-art-nature-people  | ✅    |
+| AAAAAA99-photo-architecture  | ✅    |
 | art-person-ABCDEF            | ❌    |
-| art-ABCDEF                   | ❌    |
+| ABCDEF-art                   | ❌    |
 | art-photo-ABCDEF             | ❌    |
 | art-people-01                | ❌    |
-
-## Bad Example
-formats are not all equally valid. Here is a a bad format: 
-
-```
-let format := with_no_delim [
-    no_delim {>= 1} ["A", "B", "C"]
-  , no_delim {>= 1} ["A", "B", "C"]
-  , no_delim {>= 1} ["A", "B", "C"]
-  ]
-```
-
-This is a bad format because although `ABC` looks like it's intended to be a valid filename, the parser will greedily consume everything in the first parse group and complain that the following two had no matches. This DSL does not detect nor prevent the creation of these bad parsers.
 
 ## Development
 
@@ -61,9 +48,7 @@ run tests with `make test`
 
 ## Future work
 - name the tool better
-- add additional functions like histogram reporting
-- decide on strictly greedy parsing, or ambiguity detection
-- add non-local constraints like the ability to enforce uniqueness and that incrementing counters are consecutive. 
+- add additional app functions like histogram reporting
 - Have it work recursively across subdirectories. Would have to decide how non-local constraints like uniqueness and consequitive numbers interact with directory boundaries. Alternatively, require users to pipe strings to avoid file system interactions.
 - Generate local ui from source that allows for visually iterating through the files and constructing valid usernames with checkboxes. Boxes should be pre-checked if the filename is already valid for easy editing.
 - Migrate a directory from one naming scheme to another
