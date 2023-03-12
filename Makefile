@@ -1,3 +1,6 @@
+# Makefile
+# Commands in this makefile are meant for local development, not for CI.
+# The cabal file errors on warnings, but these commands do not elevate warnings to errors for ease of development.
 
 # Requires docker and circleci installed
 # circleci local runner doesn't support built caching so it takes forever
@@ -9,20 +12,17 @@ ci:
 
 .PHONY: build
 build:
-	cabal new-build --enable-tests --ghc-options=-Wwarn
+	cabal build --ghc-options=-Wwarn
 
-# runs unit test making sure warnings don't block test runs
-# not suitable for CI which should make warnings block test runs
 .PHONY: unit
 unit:
-	cabal new-test unit --enable-tests --ghc-options=-Wwarn
+	cabal test unit --ghc-options=-Wwarn
 
 .PHONY: integration
 integration:
-	rm -rf src/integration/target && \
-	cabal new-test integration --enable-tests --ghc-options=-Wwarn
+	cabal test integration --ghc-options=-Wwarn
 
-# runs unit and integration test
+# runs all test suites
 .PHONY: test
-test: unit integration
-
+test:
+	cabal test --ghc-options=-Wwarn

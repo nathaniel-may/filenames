@@ -36,7 +36,7 @@ import Data.Function as Export (
 import GHC.IO    as Export (IO)
 import GHC.Num   as Export
 import GHC.Real  as Export
-import GHC.Float as Export
+import GHC.Float as Export hiding (clamp)
 import GHC.Show  as Export
 
 -- Debugging
