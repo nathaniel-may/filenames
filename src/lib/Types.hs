@@ -11,56 +11,43 @@ newtype Name
     = Name Text
     deriving (Read, Show, Eq, Ord)
 
+data Attribute
+    = Unique | Optional
+    deriving (Read, Show, Eq)
+
 data ExprU
-    = BodyU [ExprU]
-    | StringU Text
-    | IntU Int -- TODO nat?
-    | BoolU Bool
+    = StringU Text
     | ListU [ExprU]
-    | AssignmentU Name ExprU
-    | InfixIdentifierU Name
     | IdentifierU Name
     | ApplyU ExprU ExprU
     deriving (Read, Show, Eq)
 
 data ExprT
-    = UnitT
-    | StringT Text
-    | IntT Int
-    | BoolT Bool
+    = StringT Text
+    | AttributeT Attribute
     | ListT Type [ExprT]
-    -- name of function, type of function, remaining param types, already applied values
+    | RecordT Name [(Name, ExprT)]
     | FnT Name Type [ExprT]
-    | ApplyT ExprT ExprT
-    | FlipT ExprT
     deriving (Read, Show, Eq)
 
 data Type
-    = UnitTag
-    | StringTag
-    | IntTag
-    | BoolTag
+    = StringTag
+    | AttributeTag
     | ListTag Type
-    -- param type, return type (e.g. \x -> (+x) is of type (FnTag IntTag (FnTag IntTag Int)))
+    | RecordTag Name [(Name, Type)]
     | FnTag Type Type
-    -- constructed by builtins
-    | ParserTag
     deriving (Read, Show, Eq)
 
 type Env = Map Name ExprT
 
 type Closure = (Env, ExprT)
 
-
 instance Display Type where
-    display UnitTag = "unit"
     display StringTag = "string"
-    display IntTag = "int"
-    display BoolTag = "bool"
+    display AttributeTag = "attribute"
     display (ListTag t) = "List[" <> display t <> "]"
-    -- note: fns with no params are just values.
-    display (FnTag p ret) = display p <> " -> " <> display ret
-    display ParserTag = "Parser"
+    display (RecordTag name _) = display name
+    display (FnTag param ret) = display param <> " -> " <> display ret
 
 instance Display Name where
     display (Name name) = name
